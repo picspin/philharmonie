@@ -33,9 +33,9 @@ Philharmonie is a **small, tested harness** for running several LLM agents (or o
 - **Shostakovich — 0-token ladder.** Lint / unit / e2e / security run as shell *before* anyone wakes an LLM.
 - **Fugue rooms.** Writers rehearse in worktrees. Review + tests stay on the sounding tree.
 
-It is **not** a new agent runtime. The default adapter speaks [Hermes](https://github.com/NousResearch/hermes-agent) (`hermes chat -w/-t`). The envelope, audition, tacet, garden, and snare latches are runtime-agnostic — point `MADA_HERMES` at another CLI, or read the JSON from Codex / Claude Code / OpenClaw / your own loop.
+It is **not** a new agent runtime. The default adapter speaks [Hermes](https://github.com/NousResearch/hermes-agent) (`hermes chat -w/-t`). `--hall claude|codex|pi` (or `MADA_HALL`) swaps the podium. Envelope, audition, Tacet, garden, and snare stay the hall.
 
-它不是又一个 agent 框架。默认适配 Hermes；信封和闩是机制，换指挥台不必换大厅。
+它不是又一个 agent 框架。默认适配 Hermes；`--hall` 换指挥台，信封和闩是大厅。
 
 ---
 
@@ -51,6 +51,7 @@ bash scripts/test_garden_score.sh     # 14
 bash scripts/test_snare_score.sh      # 27
 bash scripts/test_spawn_chair.sh      # 41
 bash scripts/test_tacet_guard.sh      # 16
+bash scripts/test_halls.sh            # hall adapters
 python3 scripts/garden_score.py       # Katalog ↔ parts
 ```
 
@@ -119,22 +120,33 @@ Ceilings: [`templates/section-contract.json`](templates/section-contract.json).
 
 ## Bring your own agent / 换指挥台
 
-The spawn wrapper talks Hermes by default. Override the binary:
+`--hall` / `MADA_HALL` selects the podium. Default `hermes`. Adapters plug in; chairs do **not** auto-admit.
 
 ```bash
-export MADA_HERMES=/usr/local/bin/other-agent   # wins
-export HERMES=/usr/local/bin/hermes             # fallback
-# else $PATH hermes, else /opt/hermes/.venv/bin/hermes
+# dry-run any hall — same envelope, different argv
+python3 scripts/spawn_chair.py --hall claude --dry-run --envelope examples/violin-1.json
+python3 scripts/spawn_chair.py --hall codex  --dry-run --envelope examples/violin-1.json
+python3 scripts/spawn_chair.py --hall pi     --dry-run --envelope examples/violin-1.json
+
+export MADA_HALL=claude          # default for this shell
+export MADA_CLAUDE=$(command -v claude)
+export MADA_CODEX=$(command -v codex)
+export MADA_PI=$(command -v pi)
+export MADA_HERMES=$(command -v hermes)   # Hermes binary pin still works
 ```
 
-Provider mapping inside `spawn_chair.py` is a **Hermes hall** convention (`cliproxy` / `litellm-gateway` / alias with no `--provider`). A foreign CLI can:
+| Hall | Isolation | Tool gate | Binary pin |
+|------|-----------|-----------|------------|
+| `hermes` | `-w` | `-t` + `--yolo` | `MADA_HERMES` / `HERMES` |
+| `claude` | `--worktree` | `--allowedTools` | `MADA_CLAUDE` / `CLAUDE` |
+| `codex` | none (no invented `-w`) | none (no invented `-t`) | `MADA_CODEX` / `CODEX` |
+| `pi` | none | none | `MADA_PI` / `PI` |
 
-1. Honor `--dry-run` JSON (`argv` + `env`) and rewrite argv[0], or
-2. Skip the wrapper and read the envelope directly — still run `audition_chair.py`, still export `MADA_*`, still install `tacet-guard.sh` as a pre-tool hook if the runtime has one.
+Codex / Pi have no spawn-time tool gate — install `tacet-guard.sh` as that runtime's pre-tool hook, or wrap the binary. Recipe: [`references/halls.md`](references/halls.md).
 
-Codex / Claude Code / OpenClaw / raw HTTP agents are welcome. They do **not** get a costume JSON field for “compaction tier 1–5”. Compress at movement boundaries.
+Do **not** add a costume field for “compaction tier 1–5”. Compress at movement boundaries.
 
-换 Codex / Claude Code / 其他 LLM API：认信封和闩，不要为了换台子重写大厅。
+换 Codex / Claude Code / Pi：`--hall` 换台，认信封和闩，不要重写大厅。
 
 ---
 
@@ -145,6 +157,7 @@ Codex / Claude Code / OpenClaw / raw HTTP agents are welcome. They do **not** ge
 | Katalog | `SKILL.md` ≤ 140 lines | `scripts/garden_score.py` |
 | Audition | `scripts/audition_chair.py` | 36 cases. Pass ≠ admit |
 | Spawn | `scripts/spawn_chair.py` | 41 cases. Default audition; `--force` skips |
+| Halls | `scripts/halls.py` | `--hall` / `MADA_HALL`. `test_halls.sh` |
 | Tacet | `scripts/tacet-guard.sh` | 16 cases. Opt-in `pre_tool_call`. Fail-open if `MADA_SECTION` unset |
 | Garden | `scripts/garden_score.py` | 14 cases. Catalog ↔ parts, no `compaction_tier` |
 | Snare | `scripts/snare_score.py` | 27 cases. Target `AGENTS.md` 4 rungs |
@@ -162,7 +175,7 @@ Copy **mechanism**, not costume. A field nobody reads is murder.
 
 ```
 philharmonie/
-├── SKILL.md                 # Katalog (≤140). Hermes-installable.
+├── SKILL.md                 # Katalog (≤140). Installable as a skill.
 ├── LICENSE                  # MIT
 ├── examples/                # violin-1 / violin-2 / tacet-mute
 ├── scripts/                 # latches + contract tests

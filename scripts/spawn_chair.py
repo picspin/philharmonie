@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
-"""Envelope → hermes chat spawn. Isolation fields drive argv/env; they are not costume.
+"""Envelope → hall spawn. Isolation fields drive argv/env; they are not costume.
 
 Usage:
   spawn_chair.py --envelope chair.json -q "<brief>"
-  spawn_chair.py --dry-run --envelope chair.json -q "<brief>"
+  spawn_chair.py --hall claude --dry-run --envelope chair.json -q "<brief>"
   spawn_chair.py --dry-run -q "<brief>" < chair.json
 
+Default hall is Hermes. --hall / MADA_HALL selects Codex / Claude / Pi.
 Refuses: audition fail (unless --force), missing/empty allowed_toolsets,
 unknown section, cheap chair + sol without --brass-cue.
 Does not auto-admit a model into the pool.
@@ -24,19 +25,11 @@ _SCRIPTS = Path(__file__).resolve().parent
 if str(_SCRIPTS) not in sys.path:
     sys.path.insert(0, str(_SCRIPTS))
 from audition_chair import evaluate  # noqa: E402
-import shutil
+from halls import HALLS, HallError, csv_of, resolve_hall  # noqa: E402
 
-# Override for other halls / agents. Fallback keeps this gateway's pin.
+# Re-export for callers / tests that imported these from spawn_chair.
 HERMES_DEFAULT = "/opt/hermes/.venv/bin/hermes"
-
-
-def hermes_bin() -> str:
-    for key in ("MADA_HERMES", "HERMES"):
-        val = os.environ.get(key)
-        if val:
-            return val
-    found = shutil.which("hermes")
-    return found or HERMES_DEFAULT
+ALIASES = {"ox-alpha", "ox-alpha-free", "mimo", "mimo-v2.5", "mimo-v2-omni"}
 
 SECTIONS = {
     "conductor",
@@ -56,9 +49,6 @@ SECTIONS = {
     "bassoon",
     "trumpet",
 }
-
-# Named aliases already in this gateway's config — do not invent --provider.
-ALIASES = {"ox-alpha", "ox-alpha-free", "mimo", "mimo-v2.5", "mimo-v2-omni"}
 
 BRASS_MODELS = (
     "gpt-5.6-sol",
@@ -96,17 +86,6 @@ def load_envelope(path: Optional[str]) -> Dict[str, Any]:
     return data
 
 
-def provider_for(model: str) -> Optional[str]:
-    if not model:
-        raise SpawnError("sender.model is required")
-    if model in ALIASES:
-        return None
-    if model.startswith(("code1-", "code2-", "mga-", "mga-r-")):
-        return "litellm-gateway"
-    # cliproxy catalog + Cloud/Mac ids that still go through hermes chat
-    return "cliproxy"
-
-
 def is_brass_model(model: str) -> bool:
     if model in BRASS_MODELS:
         return True
@@ -115,12 +94,8 @@ def is_brass_model(model: str) -> bool:
     return False
 
 
-def csv_of(items: Sequence[str]) -> str:
-    return ",".join(x.strip() for x in items if str(x).strip())
-
-
 def plan(env_obj: Dict[str, Any], *, query: Optional[str], section_override: Optional[str],
-         brass_cue: bool) -> Tuple[List[str], Dict[str, str]]:
+         brass_cue: bool, hall_name: Optional[str] = None) -> Tuple[List[str], Dict[str, str], str]:
     raw_sender = env_obj.get("sender")
     sender: Dict[str, Any] = raw_sender if isinstance(raw_sender, dict) else {}
     section = section_override or str(sender.get("section") or "")
@@ -165,25 +140,23 @@ def plan(env_obj: Dict[str, Any], *, query: Optional[str], section_override: Opt
     if not q:
         raise SpawnError("need -q or payload.summary")
 
-    argv: List[str] = [hermes_bin(), "chat"]
-    if isolation == "worktree":
-        argv.append("-w")
-    argv.extend(["-q", q])
-    provider = provider_for(model)
-    if provider:
-        argv.extend(["--provider", provider])
-    argv.extend(["-m", model, "-t", csv_of(tools), "--yolo"])
+    try:
+        hall = resolve_hall(hall_name)
+        argv = hall.argv(model=model, query=q, isolation=isolation, tools=tools)
+    except HallError as exc:
+        raise SpawnError(exc.message) from exc
 
     child_env = {
         "MADA_SECTION": section,
         "MADA_ALLOWED_TOOLSETS": csv_of(tools),
+        "MADA_HALL": hall.name,
     }
     if tacet_csv:
         child_env["MADA_TACET_PATHS"] = tacet_csv
     if brass_cue:
         child_env["MADA_BRASS_CUE"] = "1"
 
-    return argv, child_env
+    return argv, child_env, hall.name
 
 
 def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
@@ -194,6 +167,10 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
     p.add_argument("--brass-cue", action="store_true", help="Allow conductor to wake sol")
     p.add_argument("--force", action="store_true", help="Skip audition; spawn latches still apply")
     p.add_argument("--dry-run", action="store_true", help="Print argv+env JSON, do not exec")
+    p.add_argument(
+        "--hall",
+        help=f"Runtime adapter: {'|'.join(HALLS)} (default hermes / MADA_HALL)",
+    )
     return p.parse_args(argv)
 
 
@@ -226,11 +203,12 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             effective_envelope(envelope, args.section),
             force=bool(args.force),
         )
-        cmd, child_env = plan(
+        cmd, child_env, hall = plan(
             envelope,
             query=args.query,
             section_override=args.section,
             brass_cue=bool(args.brass_cue),
+            hall_name=args.hall,
         )
     except SpawnError as exc:
         die(exc.message)
@@ -239,7 +217,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     if args.dry_run:
         sys.stdout.write(
             json.dumps(
-                {"ok": True, "argv": cmd, "env": child_env, "audition": gate},
+                {"ok": True, "hall": hall, "argv": cmd, "env": child_env, "audition": gate},
                 ensure_ascii=False,
             )
             + "\n"

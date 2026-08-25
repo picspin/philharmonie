@@ -23,6 +23,7 @@ Token economy + structural correctness: peak expression with minimal sounding bo
 | `references/snare-score.md` | Target-repo `AGENTS.md` 4-rung latch. |
 | `scripts/tacet-guard.sh` | Child-process latch. `scripts/test_tacet_guard.sh` = 16 |
 | `scripts/spawn_chair.py` | Spawn. Default audition; `--force` skips. `scripts/test_spawn_chair.sh` = 41 |
+| `references/halls.md` | `--hall` / `MADA_HALL`. `scripts/halls.py` + `scripts/test_halls.sh` |
 | `scripts/audition_chair.py` | Audition. `scripts/test_audition_chair.sh` = 36 |
 | `scripts/garden_score.py` | Doc-garden. `scripts/test_garden_score.sh` |
 | `scripts/snare_score.py` | Target AGENTS.md. `scripts/test_snare_score.sh` |
@@ -120,7 +121,7 @@ ANP = lifecycle bus (`SPEC_LOCKED`, `TEST_PASSED`, `CIRCUIT_BREAK`). A2A = fugue
 
 Spawn 403/429 → in-session TDD + Snare. Do not stall.
 
-Hermes binary: `MADA_HERMES` / `HERMES` / `$PATH` / default pin. Other agents: honor the same fields; do not require Hermes.
+Default hall Hermes. `--hall` / `MADA_HALL` = `claude` / `codex` / `pi`. Adapters plug in; chairs do not auto-admit.
 
 ## Pitfalls
 

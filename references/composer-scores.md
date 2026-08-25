@@ -18,7 +18,7 @@ The tables below are **roles**, not a vendor catalog. Pin ids in *your* hall. Do
 
 429 on a cheap pool → flip that chair to another cheap pool. Do **not** spend Brass.
 
-Hermes binary: `MADA_HERMES` / `HERMES` / `$PATH` / default pin. See `spawn-chair.md`.
+Hall: `--hall` / `MADA_HALL` (`hermes` default). Binary pins in `halls.md`.
 
 ---
 

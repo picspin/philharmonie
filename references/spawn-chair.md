@@ -2,7 +2,7 @@
 
 Script: `scripts/spawn_chair.py`. Contract: `scripts/test_spawn_chair.sh` (41 cases).
 
-This is the conductor's **first latch**. Isolation fields on the envelope become `hermes chat` flags and `MADA_*` exports. The JSON is not read by the child — only by this wrapper.
+This is the conductor's **first latch**. Isolation fields on the envelope become hall argv + `MADA_*` exports. Default hall is Hermes. `--hall` / `MADA_HALL` selects `claude` / `codex` / `pi`. The JSON is not read by the child — only by this wrapper.
 
 Default gate: `audition_chair.evaluate` on the **effective** envelope (`--section` applied to a deepcopy first, then evaluate). Fail = refuse. `--force` skips audition; spawn latches (`-t` / mute / brass) still apply. Pass ≠ admit.
 
@@ -17,12 +17,13 @@ Every spawn fixture now needs Mahler `budget.dynamic_mark`. Wiring audition as t
 | `sender.section` | `MADA_SECTION` |
 | `allowed_toolsets` | `-t` csv + `MADA_ALLOWED_TOOLSETS` |
 | `tacet_paths` | `MADA_TACET_PATHS` |
-| `isolation: worktree` | `hermes chat -w` |
-| `isolation: shared` | no `-w` |
-| `sender.model` | `-m` + `--provider` (see routing) |
+| `isolation: worktree` | Hermes `-w` / Claude `--worktree`. Codex / Pi: env only |
+| `isolation: shared` | no isolation flag |
+| `sender.model` | Hermes `-m` + `--provider`; Claude `--model`; Codex `-m`; Pi: env only |
 | `--brass-cue` | `MADA_BRASS_CUE=1` |
+| `--hall` / `MADA_HALL` | adapter (`hermes` default) |
 
-Always `--yolo`. Query = `-q` or `payload.summary`.
+Hermes always `--yolo`. Query = `-q` or `payload.summary`. Other halls: see `halls.md`.
 
 ## Routing
 
@@ -59,7 +60,7 @@ python3 scripts/spawn_chair.py --envelope chair.json -q "<brief>"
 python3 scripts/spawn_chair.py --dry-run -q "<brief>" < chair.json
 ```
 
-Hermes binary: `MADA_HERMES` or `HERMES` or `$PATH` `hermes`, else `/opt/hermes/.venv/bin/hermes`. Non-`--dry-run` is `os.execvpe` — it **replaces** this process. Run it as a child, never in the conductor's own PID.
+Hall binary pins: `MADA_HERMES` / `MADA_CLAUDE` / `MADA_CODEX` / `MADA_PI` (see `halls.md`). Non-`--dry-run` is `os.execvpe` — it **replaces** this process. Run it as a child, never in the conductor's own PID.
 
 ## Pair with tacet-guard
 

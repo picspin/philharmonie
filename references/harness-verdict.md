@@ -25,7 +25,8 @@ Mechanized — do not rebuild:
 | Latch | Artifact | Contract |
 |-------|----------|----------|
 | Katalog | `SKILL.md` ≤140 | chairs / Tacet / 0-token stay on the page |
-| Spawn | `scripts/spawn_chair.py` | `test_spawn_chair.sh` 41. Default audition; `--force` skips. `MADA_HERMES` overrides the binary. |
+| Spawn | `scripts/spawn_chair.py` | `test_spawn_chair.sh` 41. Default audition; `--force` skips. `--hall` / `MADA_HALL`. |
+| Halls | `scripts/halls.py` | `test_halls.sh`. Adapters plug in; chairs do not auto-admit. |
 | Tacet | `scripts/tacet-guard.sh` | `test_tacet_guard.sh` 16. Opt-in `pre_tool_call`. Unset `MADA_SECTION` = fail-open. |
 | Audition | `scripts/audition_chair.py` | `test_audition_chair.sh` 36. `admit` always false. |
 | Garden | `scripts/garden_score.py` | `test_garden_score.sh` 14. Katalog ↔ parts. |

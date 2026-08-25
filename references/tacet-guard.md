@@ -21,7 +21,7 @@ Only when `MADA_SECTION` is set (conductor exports it on spawn):
 
 - A parent session that started before the hook was registered. New child chats load it. Unset `MADA_SECTION` → still no-op.
 - A child chat that the conductor forgot to export `MADA_SECTION` into.
-- Codex Cloud / `codex exec` / foreign ACP — different runtimes, no Hermes hook unless you install one there.
+- Codex Cloud / `codex exec` / Pi — install this same script as *that* runtime's pre-tool hook (`halls.md`). Unset `MADA_SECTION` still fail-open.
 - `delegate_task` children unless the parent process itself has the hook **and** the env is inherited.
 - Model routing / 429 / Brass quota. Schema-valid ≠ auto-admit.
 

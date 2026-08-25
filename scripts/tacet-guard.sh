@@ -56,12 +56,22 @@ cmd = str(tin.get("command") or "")
 TOOLSET = {
     "terminal": "terminal",
     "process": "terminal",
+    "Bash": "terminal",  # Claude Code
+    "shell": "terminal",  # Codex
     "read_file": "file",
     "write_file": "file",
     "patch": "file",
     "search_files": "file",
+    "Read": "file",
+    "Edit": "file",
+    "Write": "file",
+    "Glob": "file",
+    "Grep": "file",
+    "apply_patch": "file",
     "web_search": "web",
     "web_extract": "web",
+    "WebSearch": "web",
+    "WebFetch": "web",
     "browser_navigate": "web",
     "browser_click": "web",
     "browser_type": "web",
@@ -73,6 +83,7 @@ TOOLSET = {
     "browser_get_images": "web",
     "browser_vision": "web",
     "delegate_task": "delegation",
+    "Task": "delegation",
     "image_generate": "vision",
     "vision_analyze": "vision",
 }
@@ -121,11 +132,12 @@ def hits_bass(candidate: str) -> bool:
             return True
     return False
 
-WRITE_TOOLS = {"write_file", "patch"}
+WRITE_TOOLS = {"write_file", "patch", "Write", "Edit", "apply_patch"}
 if tool in WRITE_TOOLS and hits_bass(path):
     block(f"TACET: {section} must not write ground-bass path '{path}'")
 
-if tool == "terminal" and cmd:
+SHELL_TOOLS = {"terminal", "Bash", "shell"}
+if tool in SHELL_TOOLS and cmd:
     writer = re.search(
         r"(^|[\s;|&])(sed\s+-+\w*i|sed\s+-\S*\s+-i|tee\s|cat\s.*>|python3?\s)",
         cmd,
@@ -141,7 +153,7 @@ BRASS_RE = re.compile(
     r"(?:^|[\s=])(?:gpt-5\.6-sol|code1-gpt-5\.6-sol|code2-claude-opus-4-6-thinking)(?:\s|$)"
 )
 SOL_FLAG_RE = re.compile(r"-m\s+\S*sol(?:\s|$)")
-is_brass_spawn = tool == "terminal" and bool(cmd) and (
+is_brass_spawn = tool in SHELL_TOOLS and bool(cmd) and (
     BRASS_RE.search(cmd) or SOL_FLAG_RE.search(cmd)
 )
 
