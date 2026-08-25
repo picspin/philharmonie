@@ -53,9 +53,9 @@ bash scripts/test_tacet_guard.sh      # 16
 python3 scripts/garden_score.py       # Katalog ↔ parts
 ```
 
-Need: `python3` ≥ 3.10, `bash`. Hermes is optional until you actually spawn.
+Need: `python3` ≥ 3.10, `bash`, and `jsonschema` (`pip install jsonschema`) for audition. Hermes is optional until you actually spawn.
 
-依赖：`python3` ≥ 3.10、`bash`。真要出声再装 Hermes / 你的 agent CLI。
+依赖：`python3` ≥ 3.10、`bash`、试音需要 `jsonschema`。真要出声再装 Hermes / 你的 agent CLI。
 
 ---
 
