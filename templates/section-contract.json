@@ -1,0 +1,27 @@
+{
+  "$comment": "Chair ceilings. Subset = may audition. Never auto-admit. Isolation lock is only for sounding-tree chairs.",
+  "toolsets": ["terminal", "file", "web", "delegation", "vision"],
+  "ceilings": {
+    "conductor": ["terminal", "file", "web", "delegation", "vision"],
+    "oboe": ["file"],
+    "violin_1": ["terminal", "file"],
+    "violin_2": ["terminal", "file"],
+    "viola": ["terminal", "file"],
+    "cello": ["file"],
+    "contrabass": ["file"],
+    "horn": ["terminal", "file"],
+    "flute": ["file", "web"],
+    "organ": ["file"],
+    "heavy_brass": ["terminal", "file"],
+    "snare_drum": ["terminal", "file"],
+    "cymbals": ["terminal", "file"],
+    "harp": ["file", "web"],
+    "bassoon": ["file"],
+    "trumpet": ["file"]
+  },
+  "isolation_lock": {
+    "violin_2": "shared",
+    "snare_drum": "shared",
+    "cymbals": "shared"
+  }
+}

@@ -1,0 +1,24 @@
+name: snare
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: 0-token ladder
+        run: |
+          set -euo pipefail
+          bash scripts/test_audition_chair.sh
+          bash scripts/test_garden_score.sh
+          bash scripts/test_snare_score.sh
+          bash scripts/test_spawn_chair.sh
+          bash scripts/test_tacet_guard.sh
+          python3 scripts/garden_score.py

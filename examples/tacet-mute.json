@@ -1,0 +1,20 @@
+{
+  "protocol": "Mada-ANP/1.0",
+  "message_type": "TACET_DIRECTIVE",
+  "movement": "IV. Tutti",
+  "sender": {
+    "section": "oboe",
+    "agent_id": "muted",
+    "model": "qwen3.8-max"
+  },
+  "cue": "TACET",
+  "ground_bass_ref": "SPEC.md#v1",
+  "isolation": "shared",
+  "allowed_toolsets": [],
+  "budget": {
+    "dynamic_mark": "ppp"
+  },
+  "payload": {
+    "summary": "This chair is mute. spawn_chair.py must refuse."
+  }
+}
