@@ -1,5 +1,6 @@
 # Philharmonie / 金色大厅
 
+Author: Xiaolei Zhu, zxl1412@gmail.com  
 **A multi-agent harness scored as a classical orchestra.**
 **把多智能体编排写成一部能验的总谱，而不是一场Costume派对。**
 
@@ -19,7 +20,7 @@ English first, 中文紧随。Mechanism, not costume.
 | **Musikverein / 金色大厅** | Shoe-box. One resident orchestra. The room *is* the Wien Philharmoniker. | Beautiful, closed. A harness that can swap models / agents is not a resident band. |
 | **Berliner Philharmonie** (Scharoun) | Vineyard terraces around a **sunken podium**. Conductor in the well. Sections sit on replaceable terraces. | This is the repo. Chairs are interfaces. The hall stays; the orchestra can change. |
 
-中文诗名仍可叫「金色大厅」——那是音色，不是建筑。仓库名、协议入口、发布名：**Philharmonie**。
+中文诗名仍可叫「金色大厅」——那是音色，不是建筑。仓库名、协议入口源自作者曾经生活的地方：柏林以及热爱的柏林爱乐团大厅：**Philharmonie**。
 
 ---
 
