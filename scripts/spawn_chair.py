@@ -94,8 +94,21 @@ def is_brass_model(model: str) -> bool:
     return False
 
 
+def enforce_hall_capabilities(hall: Any, *, isolation: str, model: str, tools: Sequence[str]) -> Dict[str, Any]:
+    cap = getattr(hall, "capabilities", None)
+    if not isinstance(cap, dict):
+        raise SpawnError(f"hall {hall.name} missing capabilities")
+    if isolation == "worktree" and not cap.get("worktree"):
+        raise SpawnError(f"hall {hall.name} cannot enforce isolation=worktree")
+    if model and not cap.get("model_pin"):
+        raise SpawnError(f"hall {hall.name} cannot pin sender.model")
+    if tools and not cap.get("tool_allowlist") and cap.get("pre_tool_hook") != "external":
+        raise SpawnError(f"hall {hall.name} cannot enforce allowed_toolsets")
+    return cap
+
+
 def plan(env_obj: Dict[str, Any], *, query: Optional[str], section_override: Optional[str],
-         brass_cue: bool, hall_name: Optional[str] = None) -> Tuple[List[str], Dict[str, str], str]:
+         brass_cue: bool, hall_name: Optional[str] = None) -> Tuple[List[str], Dict[str, str], str, Dict[str, Any]]:
     raw_sender = env_obj.get("sender")
     sender: Dict[str, Any] = raw_sender if isinstance(raw_sender, dict) else {}
     section = section_override or str(sender.get("section") or "")
@@ -142,6 +155,7 @@ def plan(env_obj: Dict[str, Any], *, query: Optional[str], section_override: Opt
 
     try:
         hall = resolve_hall(hall_name)
+        cap = enforce_hall_capabilities(hall, isolation=isolation, model=model, tools=tools)
         argv = hall.argv(model=model, query=q, isolation=isolation, tools=tools)
     except HallError as exc:
         raise SpawnError(exc.message) from exc
@@ -150,13 +164,14 @@ def plan(env_obj: Dict[str, Any], *, query: Optional[str], section_override: Opt
         "MADA_SECTION": section,
         "MADA_ALLOWED_TOOLSETS": csv_of(tools),
         "MADA_HALL": hall.name,
+        "MADA_ISOLATION": isolation,
     }
     if tacet_csv:
         child_env["MADA_TACET_PATHS"] = tacet_csv
     if brass_cue:
         child_env["MADA_BRASS_CUE"] = "1"
 
-    return argv, child_env, hall.name
+    return argv, child_env, hall.name, cap
 
 
 def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
@@ -203,7 +218,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             effective_envelope(envelope, args.section),
             force=bool(args.force),
         )
-        cmd, child_env, hall = plan(
+        cmd, child_env, hall, cap = plan(
             envelope,
             query=args.query,
             section_override=args.section,
@@ -217,7 +232,14 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     if args.dry_run:
         sys.stdout.write(
             json.dumps(
-                {"ok": True, "hall": hall, "argv": cmd, "env": child_env, "audition": gate},
+                {
+                    "ok": True,
+                    "hall": hall,
+                    "argv": cmd,
+                    "env": child_env,
+                    "audition": gate,
+                    "capabilities": cap,
+                },
                 ensure_ascii=False,
             )
             + "\n"

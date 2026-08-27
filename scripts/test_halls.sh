@@ -239,22 +239,23 @@ run "claude shared no worktree" ok \
   python3 "$SPAWN" --hall claude --dry-run --envelope "$WORKDIR/v2.json" -q "review brief"
 check "claude shared has no --worktree" has argv_absent --worktree
 
-# codex — no invented -t / -w
-run "codex exec" ok \
+# codex — worktree is not costume: refuse if hall cannot enforce it
+run "codex worktree refuse" err \
   python3 "$SPAWN" --hall codex --dry-run --envelope "$WORKDIR/v1.json" -q "impl brief"
+run "pi worktree+model refuse" err \
+  python3 "$SPAWN" --hall pi --dry-run --envelope "$WORKDIR/v1.json" -q "impl brief"
+
+run "codex shared+tools ok (external hook)" ok \
+  python3 "$SPAWN" --hall codex --dry-run --envelope "$WORKDIR/v2.json" -q "review brief"
 check "hall=codex" has hall codex
 check "codex exec" has argv exec
-check "codex -m" has flag -m grok-4.6
-check "codex sandbox workspace-write" has flag -s workspace-write
+check "codex -m" has flag -m gemini-3.7-flash-high
 check "codex has no -w costume" has argv_absent -w
 check "codex has no -t costume" has argv_absent -t
+check "codex env MADA_ISOLATION=shared" has env MADA_ISOLATION shared
 
-# pi — prompt only; do not invent flags
-run "pi prompt only" ok \
-  python3 "$SPAWN" --hall pi --dry-run --envelope "$WORKDIR/v1.json" -q "impl brief"
-check "hall=pi" has hall pi
-check "pi argv ends with query" has argv "impl brief"
-check "pi has no invented --model" has argv_absent --model
+run "pi shared still refuse (no model_pin)" err \
+  python3 "$SPAWN" --hall pi --dry-run --envelope "$WORKDIR/v2.json" -q "review brief"
 
 # env override + CLI wins
 run "MADA_HALL=claude" ok \
@@ -264,8 +265,8 @@ check "env hall=claude" has hall claude
 
 run "--hall beats MADA_HALL" ok \
   env MADA_HALL=claude \
-  python3 "$SPAWN" --hall pi --dry-run --envelope "$WORKDIR/v2.json" -q "review brief"
-check "cli wins hall=pi" has hall pi
+  python3 "$SPAWN" --hall hermes --dry-run --envelope "$WORKDIR/v2.json" -q "review brief"
+check "cli wins hall=hermes" has hall hermes
 
 # latches still apply on a foreign hall
 run "unknown hall refuse" err \
