@@ -1,39 +1,42 @@
 # Philharmonie / 金色大厅
 
-Author: Xiaolei Zhu, zxl1412@gmail.com  
-**A multi-agent harness scored as a classical orchestra.**
-**把多智能体编排写成一部能验的总谱，而不是一场Costume派对。**
+Author: Xiaolei Zhu, zxl1412@gmail.com
+
+Small tested harness for several LLM agents, or one agent in several roles. 中文诗名「金色大厅」是音色；建筑是柏林爱乐大厅，不是维也纳那只鞋盒。
 
 ![Philharmonie — vineyard hall, conductor in the well](assets/hero.png)
 
 [![snare](https://github.com/picspin/philharmonie/actions/workflows/snare.yml/badge.svg)](https://github.com/picspin/philharmonie/actions/workflows/snare.yml)
+[![Python](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/)
+[![jsonschema](https://img.shields.io/badge/jsonschema-4.18%2B-informational.svg)](requirements.txt)
+[![contracts](https://img.shields.io/badge/contracts-226-success.svg)](#latches--闩)
+[![Katalog](https://img.shields.io/badge/Katalog-%E2%89%A4140_lines-lightgrey.svg)](SKILL.md)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-
-English first, 中文紧随。Mechanism, not costume.
+[![last commit](https://img.shields.io/github/last-commit/picspin/philharmonie)](https://github.com/picspin/philharmonie/commits/main)
 
 ---
 
 ## Why *Philharmonie*, not 金色大厅 / Musikverein
 
-| Hall | Geometry | Why it maps — or doesn't |
-|------|----------|--------------------------|
-| **Musikverein / 金色大厅** | Shoe-box. One resident orchestra. The room *is* the Wien Philharmoniker. | Beautiful, closed. A harness that can swap models / agents is not a resident band. |
-| **Berliner Philharmonie** (Scharoun) | Vineyard terraces around a **sunken podium**. Conductor in the well. Sections sit on replaceable terraces. | This is the repo. Chairs are interfaces. The hall stays; the orchestra can change. |
+| Hall | Geometry | Fit |
+|------|----------|-----|
+| Musikverein / 金色大厅 | Shoe-box. One resident orchestra. The room *is* the Wien Philharmoniker. | Closed. A harness that swaps models is not a resident band. |
+| Berliner Philharmonie (Scharoun) | Vineyard terraces around a sunken podium. Conductor in the well. Sections sit on replaceable terraces. | This repo. Chairs are interfaces. The hall stays; the orchestra can change. |
 
-中文诗名仍可叫「金色大厅」——那是音色，不是建筑。仓库名、协议入口源自作者曾经生活的地方：柏林以及热爱的柏林爱乐团大厅：**Philharmonie**。
+仓库名来自作者住过的柏林，以及那座大厅。中文仍可叫金色大厅，那是音色，不是平面图。
 
 ---
 
 ## What this is / 这是什么
 
-Philharmonie is a **small, tested harness** for running several LLM agents (or one agent with several roles) as a symphony:
+Borrowed habits. Not a new runtime:
 
 - **Bach — ground bass.** `SPEC.md`, locked tests, and API contracts do not move during a variation.
 - **Mahler — Tacet.** A chair that is not cued does not get tools. Empty `allowed_toolsets` = mute = refuse to spawn.
-- **Shostakovich — 0-token ladder.** Lint / unit / e2e / security run as shell *before* anyone wakes an LLM.
+- **Shostakovich — 0-token ladder.** Lint / unit / e2e / security run as shell before anyone wakes an LLM.
 - **Fugue rooms.** Writers rehearse in worktrees. Review + tests stay on the sounding tree.
 
-It is **not** a new agent runtime. The default adapter speaks [Hermes](https://github.com/NousResearch/hermes-agent) (`hermes chat -w/-t`). `--hall claude|codex|pi` (or `MADA_HALL`) swaps the podium. Envelope, audition, Tacet, garden, and snare stay the hall.
+Default adapter speaks [Hermes](https://github.com/NousResearch/hermes-agent) (`hermes chat -w/-t`). `--hall claude|codex|pi` (or `MADA_HALL`) swaps the podium. Envelope, audition, Tacet, garden, and snare stay the hall.
 
 它不是又一个 agent 框架。默认适配 Hermes；`--hall` 换指挥台，信封和闩是大厅。
 
@@ -44,6 +47,7 @@ It is **not** a new agent runtime. The default adapter speaks [Hermes](https://g
 ```bash
 git clone git@github.com:picspin/philharmonie.git
 cd philharmonie
+python3 -m pip install -r requirements.txt   # jsonschema>=4.18
 
 # 0-token contracts (no API key, no LLM)
 bash scripts/test_audition_chair.sh   # 44
@@ -51,11 +55,11 @@ bash scripts/test_garden_score.sh     # 20
 bash scripts/test_snare_score.sh      # 27
 bash scripts/test_spawn_chair.sh      # 80
 bash scripts/test_tacet_guard.sh      # 16
-bash scripts/test_halls.sh            # hall adapters
+bash scripts/test_halls.sh            # 39
 python3 scripts/garden_score.py       # Katalog ↔ parts
 ```
 
-Need: `python3` ≥ 3.10, `bash`, and `jsonschema` (`pip install jsonschema`) for audition. Hermes is optional until you actually spawn.
+You need `python3` ≥ 3.10, `bash`, and `jsonschema`. Hermes is optional until you actually spawn.
 
 依赖：`python3` ≥ 3.10、`bash`、试音需要 `jsonschema`。真要出声再装 Hermes / 你的 agent CLI。
 
@@ -63,8 +67,8 @@ Need: `python3` ≥ 3.10, `bash`, and `jsonschema` (`pip install jsonschema`) fo
 
 ## 5-minute score / 五分钟总谱
 
-1. Lock the bass — a `SPEC.md` plus failing tests. Oboe. No Violin yet.
-2. Write an envelope (or start from `examples/`).
+1. Lock the bass: a `SPEC.md` plus failing tests. Oboe. No Violin yet.
+2. Write an envelope, or start from `examples/`.
 3. Audition, then spawn (dry-run first):
 
 ```bash
@@ -93,7 +97,7 @@ export MADA_HERMES="$(command -v hermes)"   # or your wrapper
 python3 scripts/spawn_chair.py --envelope examples/violin-1.json
 ```
 
-`spawn_chair.py` without `--dry-run` is `os.execvpe` (process replace; `timeout_sec` is costume). `--supervise` waits, honors `budget.timeout_sec`, and prints a result envelope. `--ticket` is an optional conductor grant (`run_id`, expiry); `--force` does not skip it; no signature; pass ≠ admit. `--lock-bass DIR` chmods ground-bass read-only under the target repo and restores after supervise; not a bind-mount; Tacet ≠ sandbox. Run execvpe as a child, never as the conductor.
+`spawn_chair.py` without `--dry-run` is `os.execvpe` (process replace; `timeout_sec` is ignored). `--supervise` waits, honors `budget.timeout_sec`, and prints a result envelope. `--ticket` is an optional conductor grant (`run_id`, expiry); `--force` does not skip it; no signature; pass ≠ admit. `--lock-bass DIR` chmods ground-bass read-only under the target repo and restores after supervise. It is not a bind-mount. Tacet ≠ sandbox. Run execvpe as a child, never as the conductor.
 
 ---
 
@@ -112,7 +116,7 @@ Ceilings: [`templates/section-contract.json`](templates/section-contract.json).
 | `budget.dynamic_mark` | Mahler dynamic (`ppp`…`ffff`) | required to audition |
 | `payload.summary` | Brief if you omit `-q` | — |
 
-`admit` is **always false**. Schema-valid ≠ in the pool. Quota / Brass stay with the conductor.
+`admit` is always false. Schema-valid ≠ in the pool. Quota / Brass stay with the conductor.
 
 `admit` 恒为 false。过谱 ≠ 入团。配额和铜管只听指挥。
 
@@ -120,7 +124,7 @@ Ceilings: [`templates/section-contract.json`](templates/section-contract.json).
 
 ## Bring your own agent / 换指挥台
 
-`--hall` / `MADA_HALL` selects the podium. Default `hermes`. Adapters plug in; chairs do **not** auto-admit.
+`--hall` / `MADA_HALL` selects the podium. Default `hermes`. Adapters plug in; chairs do not auto-admit.
 
 ```bash
 # dry-run any hall — same envelope, different argv
@@ -143,9 +147,9 @@ export MADA_HERMES=$(command -v hermes)   # Hermes binary pin still works
 | `codex` | refuse envelope `worktree` | env + external hook | `MADA_CODEX` / `CODEX` |
 | `pi` | refuse | refuse (no hook) | `MADA_PI` / `PI` — cannot pin model |
 
-Codex shared+tools still spawns; tool gate is the hook, not argv. Pi cannot spawn this wave. Recipe: [`references/halls.md`](references/halls.md).
+Codex shared+tools still spawns; the tool gate is the hook, not argv. Pi cannot spawn this wave. Recipe: [`references/halls.md`](references/halls.md).
 
-Do **not** add a costume field for “compaction tier 1–5”. Diminuendo is convention: last 3 exchanges full; older tool results one-line; `/compress` only at a movement boundary.
+Do not add a field for “compaction tier 1–5”. Diminuendo is convention: last 3 exchanges full; older tool results one-line; `/compress` only at a movement boundary.
 
 换 Codex / Claude Code / Pi：`--hall` 换台，认信封和闩，不要重写大厅。
 
@@ -158,15 +162,17 @@ Do **not** add a costume field for “compaction tier 1–5”. Diminuendo is co
 | Katalog | `SKILL.md` ≤ 140 lines | `scripts/garden_score.py` |
 | Audition | `scripts/audition_chair.py` | 44 cases. Pass ≠ admit |
 | Spawn | `scripts/spawn_chair.py` | 80 cases. Default audition; `--force` skips; `--supervise` waits; `--ticket` grants; `--lock-bass` chmods |
-| Halls | `scripts/halls.py` | `--hall` / `MADA_HALL`. `test_halls.sh` |
+| Halls | `scripts/halls.py` | `--hall` / `MADA_HALL`. `test_halls.sh` 39 |
 | Tacet | `scripts/tacet-guard.sh` | 16 cases. Opt-in `pre_tool_call`. Fail-open if `MADA_SECTION` unset. `/restart` human-only |
 | Garden | `scripts/garden_score.py` | 20 cases. Catalog ↔ parts, no costume fields, nested additionalProperties false |
 | Snare | `scripts/snare_score.py` | 27 cases. Target `AGENTS.md` 4 rungs |
 
-Verdict (what was adopted / refused, and why): [`references/harness-verdict.md`](references/harness-verdict.md).
+What was adopted or refused, and why: [`references/harness-verdict.md`](references/harness-verdict.md).
 Named composer forms: [`references/composer-scores.md`](references/composer-scores.md).
+How to patch this repo: [`CONTRIBUTING.md`](CONTRIBUTING.md).
+What landed: [`CHANGELOG.md`](CHANGELOG.md).
 
-Copy **mechanism**, not costume. A field nobody reads is murder.
+Copy the latch, not the metaphor. A field nobody reads is murder.
 
 只抄机制，不抄戏服。没人读的字段是谋杀。
 
@@ -177,12 +183,14 @@ Copy **mechanism**, not costume. A field nobody reads is murder.
 ```
 philharmonie/
 ├── SKILL.md                 # Katalog (≤140). Installable as a skill.
+├── CONTRIBUTING.md          # how to patch without inventing a hall
+├── CHANGELOG.md
 ├── LICENSE                  # MIT
 ├── examples/                # violin-1 / violin-2 / tacet-mute
 ├── scripts/                 # latches + contract tests
 ├── templates/               # envelope + section ceilings
 ├── references/              # parts (garden-scored)
-└── assets/hero.png           # Codex gpt-image-2 high, 1672×941. Brief: HERO.md
+└── assets/hero.png          # Codex gpt-image-2 high, 1672×941. Brief: HERO.md
 ```
 
 ---
@@ -191,4 +199,4 @@ philharmonie/
 
 [MIT](LICENSE) © 2026 Xiaolei `<zxl1412@gmail.com>`
 
-You may test this hall with any LLM API or agent. Please keep Tacet heteronomous: a mute chair must not receive a pen.
+You may test this hall with any LLM API or agent. Keep Tacet heteronomous: a mute chair must not receive a pen.
