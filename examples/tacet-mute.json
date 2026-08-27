@@ -1,10 +1,7 @@
 {
-  "protocol": "Mada-ANP/1.0",
-  "message_type": "TACET_DIRECTIVE",
   "movement": "IV. Tutti",
   "sender": {
     "section": "oboe",
-    "agent_id": "muted",
     "model": "qwen3.8-max"
   },
   "cue": "TACET",

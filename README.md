@@ -46,10 +46,10 @@ git clone git@github.com:picspin/philharmonie.git
 cd philharmonie
 
 # 0-token contracts (no API key, no LLM)
-bash scripts/test_audition_chair.sh   # 36
-bash scripts/test_garden_score.sh     # 14
+bash scripts/test_audition_chair.sh   # 44
+bash scripts/test_garden_score.sh     # 20
 bash scripts/test_snare_score.sh      # 27
-bash scripts/test_spawn_chair.sh      # 41
+bash scripts/test_spawn_chair.sh      # 80
 bash scripts/test_tacet_guard.sh      # 16
 bash scripts/test_halls.sh            # hall adapters
 python3 scripts/garden_score.py       # Katalog ↔ parts
@@ -93,7 +93,7 @@ export MADA_HERMES="$(command -v hermes)"   # or your wrapper
 python3 scripts/spawn_chair.py --envelope examples/violin-1.json
 ```
 
-`spawn_chair.py` without `--dry-run` is `os.execvpe`. Run it as a child, never as the conductor.
+`spawn_chair.py` without `--dry-run` is `os.execvpe` (process replace; `timeout_sec` is costume). `--supervise` waits, honors `budget.timeout_sec`, and prints a result envelope. `--ticket` is an optional conductor grant (`run_id`, expiry); `--force` does not skip it; no signature; pass ≠ admit. `--lock-bass DIR` chmods ground-bass read-only under the target repo and restores after supervise; not a bind-mount; Tacet ≠ sandbox. Run execvpe as a child, never as the conductor.
 
 ---
 
@@ -125,8 +125,9 @@ Ceilings: [`templates/section-contract.json`](templates/section-contract.json).
 ```bash
 # dry-run any hall — same envelope, different argv
 python3 scripts/spawn_chair.py --hall claude --dry-run --envelope examples/violin-1.json
-python3 scripts/spawn_chair.py --hall codex  --dry-run --envelope examples/violin-1.json
-python3 scripts/spawn_chair.py --hall pi     --dry-run --envelope examples/violin-1.json
+# Codex refuses worktree (violin-1). Use a shared envelope:
+python3 scripts/spawn_chair.py --hall codex --dry-run --envelope examples/violin-2.json
+# Pi cannot pin sender.model this wave → exit 2
 
 export MADA_HALL=claude          # default for this shell
 export MADA_CLAUDE=$(command -v claude)
@@ -139,12 +140,12 @@ export MADA_HERMES=$(command -v hermes)   # Hermes binary pin still works
 |------|-----------|-----------|------------|
 | `hermes` | `-w` | `-t` + `--yolo` | `MADA_HERMES` / `HERMES` |
 | `claude` | `--worktree` | `--allowedTools` | `MADA_CLAUDE` / `CLAUDE` |
-| `codex` | none (no invented `-w`) | none (no invented `-t`) | `MADA_CODEX` / `CODEX` |
-| `pi` | none | none | `MADA_PI` / `PI` |
+| `codex` | refuse envelope `worktree` | env + external hook | `MADA_CODEX` / `CODEX` |
+| `pi` | refuse | refuse (no hook) | `MADA_PI` / `PI` — cannot pin model |
 
-Codex / Pi have no spawn-time tool gate — install `tacet-guard.sh` as that runtime's pre-tool hook, or wrap the binary. Recipe: [`references/halls.md`](references/halls.md).
+Codex shared+tools still spawns; tool gate is the hook, not argv. Pi cannot spawn this wave. Recipe: [`references/halls.md`](references/halls.md).
 
-Do **not** add a costume field for “compaction tier 1–5”. Compress at movement boundaries.
+Do **not** add a costume field for “compaction tier 1–5”. Diminuendo is convention: last 3 exchanges full; older tool results one-line; `/compress` only at a movement boundary.
 
 换 Codex / Claude Code / Pi：`--hall` 换台，认信封和闩，不要重写大厅。
 
@@ -155,11 +156,11 @@ Do **not** add a costume field for “compaction tier 1–5”. Compress at move
 | Latch | Artifact | Contract |
 |-------|----------|----------|
 | Katalog | `SKILL.md` ≤ 140 lines | `scripts/garden_score.py` |
-| Audition | `scripts/audition_chair.py` | 36 cases. Pass ≠ admit |
-| Spawn | `scripts/spawn_chair.py` | 41 cases. Default audition; `--force` skips |
+| Audition | `scripts/audition_chair.py` | 44 cases. Pass ≠ admit |
+| Spawn | `scripts/spawn_chair.py` | 80 cases. Default audition; `--force` skips; `--supervise` waits; `--ticket` grants; `--lock-bass` chmods |
 | Halls | `scripts/halls.py` | `--hall` / `MADA_HALL`. `test_halls.sh` |
-| Tacet | `scripts/tacet-guard.sh` | 16 cases. Opt-in `pre_tool_call`. Fail-open if `MADA_SECTION` unset |
-| Garden | `scripts/garden_score.py` | 14 cases. Catalog ↔ parts, no `compaction_tier` |
+| Tacet | `scripts/tacet-guard.sh` | 16 cases. Opt-in `pre_tool_call`. Fail-open if `MADA_SECTION` unset. `/restart` human-only |
+| Garden | `scripts/garden_score.py` | 20 cases. Catalog ↔ parts, no costume fields, nested additionalProperties false |
 | Snare | `scripts/snare_score.py` | 27 cases. Target `AGENTS.md` 4 rungs |
 
 Verdict (what was adopted / refused, and why): [`references/harness-verdict.md`](references/harness-verdict.md).

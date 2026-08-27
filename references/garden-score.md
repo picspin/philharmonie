@@ -9,7 +9,7 @@ Script: `scripts/garden_score.py`. Contract: `scripts/test_garden_score.sh`.
 1. Every `references|scripts|templates/...` backtick path in `SKILL.md` exists.
 2. Every file in those three dirs is named in `SKILL.md` (orphan parts fail).
 3. `SKILL.md` ≤ 140 lines.
-4. `templates/envelope.json` has no `compaction_tier`.
+4. `templates/envelope.json` has no `compaction_tier` / `protocol` / `message_type` / `sidechain` / `agent_id`. Every object node `additionalProperties` is false.
 5. `sender.section` enum = `section-contract` ceilings = `spawn_chair` / `audition_chair` `SECTIONS`.
 6. Each non-test `scripts/*.{py,sh}` has a sibling `test_<stem>.sh`. Hyphens become underscores (`tacet-guard.sh` → `test_tacet_guard.sh`).
 

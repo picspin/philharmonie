@@ -100,13 +100,10 @@ fi
 # 2. worktree + toolsets + env
 env_json "$WORKDIR/v1.json" <<'JSON'
 {
-  "protocol": "Mada-A2A/1.0",
-  "message_type": "POINT_TO_POINT_HANDOVER",
   "movement": "II. Variation",
-  "sender": {"section": "violin_1", "agent_id": "v1", "model": "grok-4.6"},
+  "sender": {"section": "violin_1", "model": "grok-4.6"},
   "cue": "SPEC_LOCKED",
   "ground_bass_ref": "SPEC.md#v1",
-  "sidechain": true,
   "isolation": "worktree",
   "allowed_toolsets": ["terminal", "file"],
   "tacet_paths": ["tests/test_locked_kernel.py"],
@@ -138,13 +135,10 @@ check "no MADA_BRASS_CUE" has_env_absent
 # 3. shared isolation → no -w
 env_json "$WORKDIR/v2.json" <<'JSON'
 {
-  "protocol": "Mada-A2A/1.0",
-  "message_type": "POINT_TO_POINT_HANDOVER",
   "movement": "III. Counterpoint",
-  "sender": {"section": "violin_2", "agent_id": "v2", "model": "gemini-3.7-flash-high"},
+  "sender": {"section": "violin_2", "model": "gemini-3.7-flash-high"},
   "cue": "PATCH_READY",
   "ground_bass_ref": "SPEC.md#v1",
-  "sidechain": true,
   "isolation": "shared",
   "allowed_toolsets": ["terminal", "file"],
   "budget": {"dynamic_mark": "mp"},
@@ -159,10 +153,8 @@ check "gemini still cliproxy" has flag --provider cliproxy
 # 4. empty toolsets = mute = refuse
 env_json "$WORKDIR/mute.json" <<'JSON'
 {
-  "protocol": "Mada-A2A/1.0",
-  "message_type": "TACET_DIRECTIVE",
   "movement": "IV. Tutti",
-  "sender": {"section": "oboe", "agent_id": "ob", "model": "mga-glm-5"},
+  "sender": {"section": "oboe", "model": "mga-glm-5"},
   "cue": "TACET",
   "ground_bass_ref": "SPEC.md#v1",
   "isolation": "shared",
@@ -177,10 +169,8 @@ run "empty allowed_toolsets refuse" err \
 # 5. missing allowed_toolsets refuse
 env_json "$WORKDIR/missing-t.json" <<'JSON'
 {
-  "protocol": "Mada-A2A/1.0",
-  "message_type": "POINT_TO_POINT_HANDOVER",
   "movement": "II. Variation",
-  "sender": {"section": "horn", "agent_id": "h", "model": "grok-4.6"},
+  "sender": {"section": "horn", "model": "grok-4.6"},
   "cue": "GO",
   "ground_bass_ref": "SPEC.md#v1",
   "isolation": "worktree",
@@ -194,10 +184,8 @@ run "missing allowed_toolsets refuse" err \
 # 6. brass without cue refuse
 env_json "$WORKDIR/brass.json" <<'JSON'
 {
-  "protocol": "Mada-A2A/1.0",
-  "message_type": "POINT_TO_POINT_HANDOVER",
   "movement": "II. Variation",
-  "sender": {"section": "horn", "agent_id": "h", "model": "gpt-5.6-sol"},
+  "sender": {"section": "horn", "model": "gpt-5.6-sol"},
   "cue": "GO",
   "ground_bass_ref": "SPEC.md#v1",
   "isolation": "worktree",
@@ -218,10 +206,8 @@ check "section override conductor" has env MADA_SECTION conductor
 # 8. heavy_brass may use sol
 env_json "$WORKDIR/hb.json" <<'JSON'
 {
-  "protocol": "Mada-A2A/1.0",
-  "message_type": "POINT_TO_POINT_HANDOVER",
   "movement": "climax",
-  "sender": {"section": "heavy_brass", "agent_id": "br", "model": "gpt-5.6-sol"},
+  "sender": {"section": "heavy_brass", "model": "gpt-5.6-sol"},
   "cue": "TUTTI",
   "ground_bass_ref": "SPEC.md#v1",
   "isolation": "shared",
@@ -236,10 +222,8 @@ run "heavy_brass sol ok" ok \
 # 9. litellm prefix
 env_json "$WORKDIR/luna.json" <<'JSON'
 {
-  "protocol": "Mada-A2A/1.0",
-  "message_type": "POINT_TO_POINT_HANDOVER",
   "movement": "III. Counterpoint",
-  "sender": {"section": "violin_2", "agent_id": "v2", "model": "code1-gpt-5.6-luna"},
+  "sender": {"section": "violin_2", "model": "code1-gpt-5.6-luna"},
   "cue": "REVIEW",
   "ground_bass_ref": "SPEC.md#v1",
   "isolation": "shared",
@@ -255,10 +239,8 @@ check "provider litellm-gateway" has flag --provider litellm-gateway
 # 10. alias omits --provider
 env_json "$WORKDIR/ox.json" <<'JSON'
 {
-  "protocol": "Mada-A2A/1.0",
-  "message_type": "POINT_TO_POINT_HANDOVER",
   "movement": "V. Finale",
-  "sender": {"section": "harp", "agent_id": "hp", "model": "ox-alpha"},
+  "sender": {"section": "harp", "model": "ox-alpha"},
   "cue": "CAPTION",
   "ground_bass_ref": "SPEC.md#v1",
   "isolation": "shared",
@@ -280,10 +262,8 @@ run "invalid json refuse" err \
 # 12. unknown section
 env_json "$WORKDIR/badsec.json" <<'JSON'
 {
-  "protocol": "Mada-A2A/1.0",
-  "message_type": "POINT_TO_POINT_HANDOVER",
   "movement": "x",
-  "sender": {"section": "kazoo", "agent_id": "k", "model": "grok-4.6"},
+  "sender": {"section": "kazoo", "model": "grok-4.6"},
   "cue": "x",
   "ground_bass_ref": "SPEC.md",
   "isolation": "shared",
@@ -317,10 +297,8 @@ check "default audition=pass" has_audition pass
 # 15. missing budget fails audition
 env_json "$WORKDIR/nobudget.json" <<'JSON'
 {
-  "protocol": "Mada-A2A/1.0",
-  "message_type": "POINT_TO_POINT_HANDOVER",
   "movement": "II. Variation",
-  "sender": {"section": "violin_1", "agent_id": "v1", "model": "grok-4.6"},
+  "sender": {"section": "violin_1", "model": "grok-4.6"},
   "cue": "SPEC_LOCKED",
   "ground_bass_ref": "SPEC.md#v1",
   "isolation": "worktree",
@@ -344,10 +322,8 @@ run "force still refuses empty toolsets" err \
 # 18. flute overflow blocked without --force
 env_json "$WORKDIR/flute.json" <<'JSON'
 {
-  "protocol": "Mada-A2A/1.0",
-  "message_type": "POINT_TO_POINT_HANDOVER",
   "movement": "probe",
-  "sender": {"section": "flute", "agent_id": "fl", "model": "mimo-v2.5"},
+  "sender": {"section": "flute", "model": "mimo-v2.5"},
   "cue": "PROBE",
   "ground_bass_ref": "SPEC.md#v1",
   "isolation": "shared",
@@ -364,6 +340,306 @@ run "MADA_HERMES override" ok \
   env MADA_HERMES=/usr/local/bin/other-hermes \
   python3 "$SPAWN" --dry-run --envelope "$WORKDIR/v1.json" -q "impl brief"
 check "argv[0] is MADA_HERMES" has argv /usr/local/bin/other-hermes
+
+has_key() {
+  python3 - "$WORKDIR/last.json" "$1" "$2" <<'PY'
+import json, sys
+d = json.loads(open(sys.argv[1]).read())
+key, want = sys.argv[2], sys.argv[3]
+got = d.get(key)
+if want == "__true__":
+    sys.exit(0 if got is True else 1)
+if want == "__null__":
+    sys.exit(0 if got is None else 1)
+sys.exit(0 if str(got) == want else 1)
+PY
+}
+
+# 20. --supervise + /bin/true → result envelope ok
+run "supervise true ok" ok \
+  env MADA_HERMES=/bin/true \
+  python3 "$SPAWN" --supervise --force --envelope "$WORKDIR/v1.json" -q "impl brief"
+check "supervise status=ok" has_key status ok
+check "supervise exit_reason=exited" has_key exit_reason exited
+check "supervise exit_code=0" has_key exit_code 0
+
+# 21. --supervise + /bin/false → error
+run "supervise false error" err \
+  env MADA_HERMES=/bin/false \
+  python3 "$SPAWN" --supervise --force --envelope "$WORKDIR/v1.json" -q "impl brief"
+check "supervise false status=error" has_key status error
+
+# 22. timeout_sec=1 + sleep wrapper → timeout
+cat > "$WORKDIR/sleep.sh" <<'SH'
+#!/bin/sh
+sleep 30
+SH
+chmod +x "$WORKDIR/sleep.sh"
+env_json "$WORKDIR/to.json" <<'JSON'
+{
+  "movement": "II. Variation",
+  "sender": {"section": "violin_1", "model": "grok-4.6"},
+  "cue": "SPEC_LOCKED",
+  "ground_bass_ref": "SPEC.md#v1",
+  "isolation": "worktree",
+  "allowed_toolsets": ["terminal", "file"],
+  "budget": {"dynamic_mark": "mf", "timeout_sec": 1},
+  "payload": {"summary": "impl"}
+}
+JSON
+run "supervise timeout" err \
+  env MADA_HERMES="$WORKDIR/sleep.sh" \
+  python3 "$SPAWN" --supervise --force --envelope "$WORKDIR/to.json" -q "impl brief"
+check "supervise status=timeout" has_key status timeout
+check "supervise exit_reason=timeout" has_key exit_reason timeout
+
+# 23. --jsonl without --supervise refuse
+run "jsonl requires supervise" err \
+  python3 "$SPAWN" --dry-run --jsonl "$WORKDIR/x.jsonl" --envelope "$WORKDIR/v1.json" -q "impl brief"
+
+# 24. --supervise --jsonl writes two events
+run "supervise jsonl ok" ok \
+  env MADA_HERMES=/bin/true \
+  python3 "$SPAWN" --supervise --jsonl "$WORKDIR/run.jsonl" --force --envelope "$WORKDIR/v1.json" -q "impl brief"
+n=$((n + 1))
+if python3 - "$WORKDIR/run.jsonl" <<'PY'
+import json, sys
+rows = [json.loads(l) for l in open(sys.argv[1]) if l.strip()]
+assert len(rows) == 2, rows
+assert rows[0]["event"] == "spawn"
+assert rows[1]["event"] == "exit"
+PY
+then
+  printf '  ok  jsonl two events\n'
+else
+  printf '  FAIL jsonl two events\n'
+  fail=$((fail + 1))
+fi
+
+# 25. timeout_sec=0 refuse at plan
+env_json "$WORKDIR/zero.json" <<'JSON'
+{
+  "movement": "II. Variation",
+  "sender": {"section": "violin_1", "model": "grok-4.6"},
+  "cue": "SPEC_LOCKED",
+  "ground_bass_ref": "SPEC.md#v1",
+  "isolation": "worktree",
+  "allowed_toolsets": ["terminal", "file"],
+  "budget": {"dynamic_mark": "mf", "timeout_sec": 0},
+  "payload": {"summary": "impl"}
+}
+JSON
+run "timeout_sec=0 refuse" err \
+  python3 "$SPAWN" --dry-run --envelope "$WORKDIR/zero.json" -q "impl brief"
+
+# 26. dry-run exposes timeout_sec
+run "dry-run timeout_sec" ok \
+  python3 "$SPAWN" --dry-run --envelope "$WORKDIR/to.json" -q "impl brief"
+check "dry-run timeout_sec=1" has_key timeout_sec 1
+
+ticket_json() {
+  cat > "$1"
+}
+
+ticket_json "$WORKDIR/ok.ticket" <<'JSON'
+{
+  "run_id": "run-001",
+  "issued_by": "conductor",
+  "expires_at": "2099-01-01T00:00:00+00:00",
+  "attempt": 1,
+  "hall": "hermes",
+  "section": "violin_1"
+}
+JSON
+
+# 27. valid ticket dry-run
+run "ticket dry-run" ok \
+  python3 "$SPAWN" --dry-run --ticket "$WORKDIR/ok.ticket" --envelope "$WORKDIR/v1.json" -q "impl brief"
+check "ticket run_id" has_key run_id run-001
+check "ticket env MADA_RUN_ID" has env MADA_RUN_ID run-001
+
+# 28. missing ticket file
+run "ticket missing file" err \
+  python3 "$SPAWN" --dry-run --ticket "$WORKDIR/no-such.ticket" --envelope "$WORKDIR/v1.json" -q "impl brief"
+
+# 29. expired
+ticket_json "$WORKDIR/old.ticket" <<'JSON'
+{
+  "run_id": "run-old",
+  "issued_by": "conductor",
+  "expires_at": "2000-01-01T00:00:00+00:00"
+}
+JSON
+run "ticket expired" err \
+  python3 "$SPAWN" --dry-run --ticket "$WORKDIR/old.ticket" --envelope "$WORKDIR/v1.json" -q "impl brief"
+
+# 30. issued_by not conductor
+ticket_json "$WORKDIR/oboe.ticket" <<'JSON'
+{
+  "run_id": "run-oboe",
+  "issued_by": "oboe",
+  "expires_at": "2099-01-01T00:00:00+00:00"
+}
+JSON
+run "ticket not conductor" err \
+  python3 "$SPAWN" --dry-run --ticket "$WORKDIR/oboe.ticket" --envelope "$WORKDIR/v1.json" -q "impl brief"
+
+# 31. hall mismatch
+ticket_json "$WORKDIR/claude.ticket" <<'JSON'
+{
+  "run_id": "run-claude",
+  "issued_by": "conductor",
+  "expires_at": "2099-01-01T00:00:00+00:00",
+  "hall": "claude"
+}
+JSON
+run "ticket hall mismatch" err \
+  python3 "$SPAWN" --dry-run --ticket "$WORKDIR/claude.ticket" --envelope "$WORKDIR/v1.json" -q "impl brief"
+
+# 32. section mismatch
+ticket_json "$WORKDIR/v2.ticket" <<'JSON'
+{
+  "run_id": "run-v2",
+  "issued_by": "conductor",
+  "expires_at": "2099-01-01T00:00:00+00:00",
+  "section": "violin_2"
+}
+JSON
+run "ticket section mismatch" err \
+  python3 "$SPAWN" --dry-run --ticket "$WORKDIR/v2.ticket" --envelope "$WORKDIR/v1.json" -q "impl brief"
+
+# 33. timeout cap: envelope 5 vs ticket 1 → refuse
+env_json "$WORKDIR/wide.json" <<'JSON'
+{
+  "movement": "II. Variation",
+  "sender": {"section": "violin_1", "model": "grok-4.6"},
+  "cue": "SPEC_LOCKED",
+  "ground_bass_ref": "SPEC.md#v1",
+  "isolation": "worktree",
+  "allowed_toolsets": ["terminal", "file"],
+  "budget": {"dynamic_mark": "mf", "timeout_sec": 5},
+  "payload": {"summary": "impl"}
+}
+JSON
+ticket_json "$WORKDIR/cap.ticket" <<'JSON'
+{
+  "run_id": "run-cap",
+  "issued_by": "conductor",
+  "expires_at": "2099-01-01T00:00:00+00:00",
+  "timeout_sec": 1
+}
+JSON
+run "ticket timeout cap" err \
+  python3 "$SPAWN" --dry-run --ticket "$WORKDIR/cap.ticket" --envelope "$WORKDIR/wide.json" -q "impl brief"
+
+# 34. --force does not skip expired ticket
+run "force still checks ticket" err \
+  python3 "$SPAWN" --dry-run --force --ticket "$WORKDIR/old.ticket" --envelope "$WORKDIR/v1.json" -q "impl brief"
+
+# 35. --supervise echoes run_id
+run "supervise ticket run_id" ok \
+  env MADA_HERMES=/bin/true \
+  python3 "$SPAWN" --supervise --force --ticket "$WORKDIR/ok.ticket" --envelope "$WORKDIR/v1.json" -q "impl brief"
+check "supervise run_id" has_key run_id run-001
+
+# 36. extra key refuse
+ticket_json "$WORKDIR/extra.ticket" <<'JSON'
+{
+  "run_id": "run-x",
+  "issued_by": "conductor",
+  "expires_at": "2099-01-01T00:00:00+00:00",
+  "signature": "nope"
+}
+JSON
+run "ticket extra key" err \
+  python3 "$SPAWN" --dry-run --ticket "$WORKDIR/extra.ticket" --envelope "$WORKDIR/v1.json" -q "impl brief"
+
+# 37. --lock-bass without supervise/dry-run refuse
+run "lock-bass needs supervise" err \
+  python3 "$SPAWN" --lock-bass "$WORKDIR" --force --envelope "$WORKDIR/v1.json" -q "impl brief"
+
+# 38. missing root
+run "lock-bass missing root" err \
+  python3 "$SPAWN" --dry-run --lock-bass "$WORKDIR/no-such-root" --envelope "$WORKDIR/v1.json" -q "impl brief"
+
+# 39. dry-run lists SPEC.md, does not chmod
+printf 'bass\n' > "$WORKDIR/SPEC.md"
+chmod 644 "$WORKDIR/SPEC.md"
+run "lock-bass dry-run" ok \
+  python3 "$SPAWN" --dry-run --lock-bass "$WORKDIR" --envelope "$WORKDIR/v1.json" -q "impl brief"
+n=$((n + 1))
+if python3 - "$WORKDIR/last.json" <<'PY'
+import json, sys
+d = json.loads(open(sys.argv[1]).read())
+locked = (d.get("lock_bass") or {}).get("locked") or []
+sys.exit(0 if "SPEC.md" in locked else 1)
+PY
+then
+  printf '  ok  lock-bass lists SPEC.md\n'
+else
+  printf '  FAIL lock-bass lists SPEC.md\n'
+  fail=$((fail + 1))
+fi
+n=$((n + 1))
+if [[ -w "$WORKDIR/SPEC.md" ]]; then
+  printf '  ok  dry-run does not chmod\n'
+else
+  printf '  FAIL dry-run does not chmod\n'
+  fail=$((fail + 1))
+fi
+
+# 40. supervise: child cannot write SPEC.md
+cat > "$WORKDIR/fake-hermes" <<'SH'
+#!/bin/sh
+python3 -c "import os,sys; p=os.environ['MADA_LOCK_PROBE']; open(p,'w').write('pwned')"
+SH
+chmod +x "$WORKDIR/fake-hermes"
+# v1.json already has isolation worktree; fake binary ignores argv
+export MADA_LOCK_PROBE="$WORKDIR/SPEC.md"
+run "lock-bass blocks write" err \
+  env MADA_HERMES="$WORKDIR/fake-hermes" MADA_LOCK_PROBE="$WORKDIR/SPEC.md" \
+  python3 "$SPAWN" --supervise --force --lock-bass "$WORKDIR" --envelope "$WORKDIR/v1.json" -q "impl brief"
+unset MADA_LOCK_PROBE
+n=$((n + 1))
+if grep -q pwned "$WORKDIR/SPEC.md" 2>/dev/null; then
+  printf '  FAIL SPEC.md stayed unpwned\n'
+  fail=$((fail + 1))
+else
+  printf '  ok  SPEC.md stayed unpwned\n'
+fi
+
+# 41. restore after supervise
+n=$((n + 1))
+if [[ -w "$WORKDIR/SPEC.md" ]]; then
+  printf '  ok  restore writable after supervise\n'
+else
+  printf '  FAIL restore writable after supervise\n'
+  fail=$((fail + 1))
+fi
+
+# 42. extra tacet_paths listed
+mkdir -p "$WORKDIR/tests"
+printf 'k\n' > "$WORKDIR/tests/test_locked_kernel.py"
+chmod 644 "$WORKDIR/tests/test_locked_kernel.py"
+run "lock-bass extra tacet dry-run" ok \
+  python3 "$SPAWN" --dry-run --lock-bass "$WORKDIR" --envelope "$WORKDIR/v1.json" -q "impl brief"
+n=$((n + 1))
+if python3 - "$WORKDIR/last.json" <<'PY'
+import json, sys
+d = json.loads(open(sys.argv[1]).read())
+locked = (d.get("lock_bass") or {}).get("locked") or []
+sys.exit(0 if "tests/test_locked_kernel.py" in locked else 1)
+PY
+then
+  printf '  ok  lock-bass lists extra tacet path\n'
+else
+  printf '  FAIL lock-bass lists extra tacet path\n'
+  fail=$((fail + 1))
+fi
+
+# 43. --force still requires lock-bass root to exist
+run "force still lock-bass root" err \
+  python3 "$SPAWN" --dry-run --force --lock-bass "$WORKDIR/no-such-root" --envelope "$WORKDIR/v1.json" -q "impl brief"
 
 echo
 if [[ "$fail" -eq 0 ]]; then

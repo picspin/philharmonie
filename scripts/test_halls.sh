@@ -115,15 +115,50 @@ else
   fail=$((fail + 1))
 fi
 
+n=$((n + 1))
+set +e
+python3 - "$HALLS" "$WORKDIR" <<'PY'
+import importlib.util, json, sys
+from pathlib import Path
+p = Path(sys.argv[1])
+spec = importlib.util.spec_from_file_location("halls", p)
+m = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(m)
+want = {
+  "hermes": {"worktree": True,  "tool_allowlist": True,  "model_pin": True,  "pre_tool_hook": "external"},
+  "claude": {"worktree": True,  "tool_allowlist": True,  "model_pin": True,  "pre_tool_hook": "external"},
+  "codex":  {"worktree": False, "tool_allowlist": False, "model_pin": True,  "pre_tool_hook": "external"},
+  "pi":     {"worktree": False, "tool_allowlist": False, "model_pin": False, "pre_tool_hook": "none"},
+}
+keys = ("worktree", "tool_allowlist", "model_pin", "pre_tool_hook")
+bad = []
+for name, exp in want.items():
+    hall = m.resolve_hall(name)
+    cap = getattr(hall, "capabilities", None)
+    if not isinstance(cap, dict):
+        bad.append(f"{name}: missing capabilities")
+        continue
+    for k in keys:
+        if cap.get(k) != exp[k]:
+            bad.append(f"{name}.{k}={cap.get(k)!r} want {exp[k]!r}")
+Path(sys.argv[2], "cap.json").write_text(json.dumps({"ok": not bad, "bad": bad}))
+sys.exit(0 if not bad else 1)
+PY
+cap_rc=$?
+set -e
+if [[ "$cap_rc" -eq 0 ]]; then
+  printf '  ok  capabilities table\n'
+else
+  printf '  FAIL capabilities table (%s)\n' "$(python3 -c 'import json; print(json.load(open("'"$WORKDIR"'/cap.json")).get("bad"))' 2>/dev/null || echo missing)"
+  fail=$((fail + 1))
+fi
+
 cat > "$WORKDIR/v1.json" <<'JSON'
 {
-  "protocol": "Mada-A2A/1.0",
-  "message_type": "POINT_TO_POINT_HANDOVER",
   "movement": "II. Variation",
-  "sender": {"section": "violin_1", "agent_id": "v1", "model": "grok-4.6"},
+  "sender": {"section": "violin_1", "model": "grok-4.6"},
   "cue": "SPEC_LOCKED",
   "ground_bass_ref": "SPEC.md#v1",
-  "sidechain": true,
   "isolation": "worktree",
   "allowed_toolsets": ["terminal", "file"],
   "tacet_paths": ["tests/test_locked_kernel.py"],
@@ -134,13 +169,10 @@ JSON
 
 cat > "$WORKDIR/v2.json" <<'JSON'
 {
-  "protocol": "Mada-A2A/1.0",
-  "message_type": "POINT_TO_POINT_HANDOVER",
   "movement": "III. Counterpoint",
-  "sender": {"section": "violin_2", "agent_id": "v2", "model": "gemini-3.7-flash-high"},
+  "sender": {"section": "violin_2", "model": "gemini-3.7-flash-high"},
   "cue": "PATCH_READY",
   "ground_bass_ref": "SPEC.md#v1",
-  "sidechain": true,
   "isolation": "shared",
   "allowed_toolsets": ["terminal", "file"],
   "budget": {"dynamic_mark": "mp"},
@@ -150,10 +182,8 @@ JSON
 
 cat > "$WORKDIR/mute.json" <<'JSON'
 {
-  "protocol": "Mada-A2A/1.0",
-  "message_type": "TACET_DIRECTIVE",
   "movement": "IV. Tutti",
-  "sender": {"section": "oboe", "agent_id": "ob", "model": "mga-glm-5"},
+  "sender": {"section": "oboe", "model": "mga-glm-5"},
   "cue": "TACET",
   "ground_bass_ref": "SPEC.md#v1",
   "isolation": "shared",
@@ -165,10 +195,8 @@ JSON
 
 cat > "$WORKDIR/brass.json" <<'JSON'
 {
-  "protocol": "Mada-A2A/1.0",
-  "message_type": "POINT_TO_POINT_HANDOVER",
   "movement": "II. Variation",
-  "sender": {"section": "horn", "agent_id": "h", "model": "gpt-5.6-sol"},
+  "sender": {"section": "horn", "model": "gpt-5.6-sol"},
   "cue": "GO",
   "ground_bass_ref": "SPEC.md#v1",
   "isolation": "worktree",
@@ -201,22 +229,23 @@ run "claude shared no worktree" ok \
   python3 "$SPAWN" --hall claude --dry-run --envelope "$WORKDIR/v2.json" -q "review brief"
 check "claude shared has no --worktree" has argv_absent --worktree
 
-# codex — no invented -t / -w
-run "codex exec" ok \
+# codex — worktree is not costume: refuse if hall cannot enforce it
+run "codex worktree refuse" err \
   python3 "$SPAWN" --hall codex --dry-run --envelope "$WORKDIR/v1.json" -q "impl brief"
+run "pi worktree+model refuse" err \
+  python3 "$SPAWN" --hall pi --dry-run --envelope "$WORKDIR/v1.json" -q "impl brief"
+
+run "codex shared+tools ok (external hook)" ok \
+  python3 "$SPAWN" --hall codex --dry-run --envelope "$WORKDIR/v2.json" -q "review brief"
 check "hall=codex" has hall codex
 check "codex exec" has argv exec
-check "codex -m" has flag -m grok-4.6
-check "codex sandbox workspace-write" has flag -s workspace-write
+check "codex -m" has flag -m gemini-3.7-flash-high
 check "codex has no -w costume" has argv_absent -w
 check "codex has no -t costume" has argv_absent -t
+check "codex env MADA_ISOLATION=shared" has env MADA_ISOLATION shared
 
-# pi — prompt only; do not invent flags
-run "pi prompt only" ok \
-  python3 "$SPAWN" --hall pi --dry-run --envelope "$WORKDIR/v1.json" -q "impl brief"
-check "hall=pi" has hall pi
-check "pi argv ends with query" has argv "impl brief"
-check "pi has no invented --model" has argv_absent --model
+run "pi shared still refuse (no model_pin)" err \
+  python3 "$SPAWN" --hall pi --dry-run --envelope "$WORKDIR/v2.json" -q "review brief"
 
 # env override + CLI wins
 run "MADA_HALL=claude" ok \
@@ -226,8 +255,8 @@ check "env hall=claude" has hall claude
 
 run "--hall beats MADA_HALL" ok \
   env MADA_HALL=claude \
-  python3 "$SPAWN" --hall pi --dry-run --envelope "$WORKDIR/v2.json" -q "review brief"
-check "cli wins hall=pi" has hall pi
+  python3 "$SPAWN" --hall hermes --dry-run --envelope "$WORKDIR/v2.json" -q "review brief"
+check "cli wins hall=hermes" has hall hermes
 
 # latches still apply on a foreign hall
 run "unknown hall refuse" err \

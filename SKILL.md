@@ -12,7 +12,7 @@ Token economy + structural correctness: peak expression with minimal sounding bo
 
 | Part | Load when |
 |------|-----------|
-| `templates/envelope.json` | A2A/ANP schema + isolation contract |
+| `templates/envelope.json` | Isolation contract. No protocol bus. |
 | `references/composer-scores.md` | Cheap-chair map, named forms, **fugue worktree** |
 | `references/tacet-guard.md` | Opt-in `pre_tool_call` latch |
 | `references/spawn-chair.md` | Envelope → `-w`/`-t`/`MADA_*`. First latch. |
@@ -22,10 +22,10 @@ Token economy + structural correctness: peak expression with minimal sounding bo
 | `references/garden-score.md` | Katalog freshness latch. 0-token. |
 | `references/snare-score.md` | Target-repo `AGENTS.md` 4-rung latch. |
 | `scripts/tacet-guard.sh` | Child-process latch. `scripts/test_tacet_guard.sh` = 16 |
-| `scripts/spawn_chair.py` | Spawn. Default audition; `--force` skips. `scripts/test_spawn_chair.sh` = 41 |
+| `scripts/spawn_chair.py` | Spawn. Default audition; `--force` skips. `scripts/test_spawn_chair.sh` = 80 |
 | `references/halls.md` | `--hall` / `MADA_HALL`. `scripts/halls.py` + `scripts/test_halls.sh` |
-| `scripts/audition_chair.py` | Audition. `scripts/test_audition_chair.sh` = 36 |
-| `scripts/garden_score.py` | Doc-garden. `scripts/test_garden_score.sh` |
+| `scripts/audition_chair.py` | Audition. `scripts/test_audition_chair.sh` = 44 |
+| `scripts/garden_score.py` | Doc-garden. `scripts/test_garden_score.sh` = 20 |
 | `scripts/snare_score.py` | Target AGENTS.md. `scripts/test_snare_score.sh` |
 
 ## 1. Chairs
@@ -92,7 +92,7 @@ The host compressor is threshold/target, **not** five Claude-Code tiers. Do not 
 
 1. Last 3 exchanges: full tool results.
 2. Older tool results: one-line placeholder / path.
-3. Compress only at a **movement boundary**.
+3. `/compress` only at a **movement boundary**. Not mid-movement. Not a schema field.
 
 A mid-movement ff summary murders the theme.
 
@@ -102,14 +102,14 @@ Schema: `templates/envelope.json`. Spawn reader: `scripts/spawn_chair.py`. Audit
 
 | Field | Drives |
 |-------|--------|
-| `sidechain` | Isolated conversation (subagent or worktree chat) |
-| `isolation` | `worktree` (writers) vs `shared` (review / Snare) |
+| `isolation` | `worktree` (writers) vs `shared` (review / Snare). Hall without worktree → refuse |
 | `allowed_toolsets` | Heteronomous Tacet → spawn tool gate. Empty = mute |
 | `tacet_paths` | Ground-bass paths this chair must not write |
+| `budget.timeout_sec` | `--supervise` wall clock. Default execvpe ignores it |
 
 `sender.section` is an **interface**. `audition_chair.py` pass = may try; `admit` is always false. Routing / quota / Brass stay with the conductor. Auto-admit plugins are refused.
 
-ANP = lifecycle bus (`SPEC_LOCKED`, `TEST_PASSED`, `CIRCUIT_BREAK`). A2A = fugue handover. AGUI = human waveform.
+Cue names (`SPEC_LOCKED`, `TEST_PASSED`, `CIRCUIT_BREAK`) are strings, not a protocol bus. AGUI = human waveform.
 
 ## 4. Conduct
 
@@ -121,7 +121,7 @@ ANP = lifecycle bus (`SPEC_LOCKED`, `TEST_PASSED`, `CIRCUIT_BREAK`). A2A = fugue
 
 Spawn 403/429 → in-session TDD + Snare. Do not stall.
 
-Default hall Hermes. `--hall` / `MADA_HALL` = `claude` / `codex` / `pi`. Adapters plug in; chairs do not auto-admit.
+Default hall Hermes. `--hall` / `MADA_HALL` = `claude` / `codex` / `pi`. Hall cannot enforce envelope → spawn exit 2. `--ticket` = conductor grant (`run_id`, expiry). `--lock-bass` = chmod. Pass ≠ admit. No signature.
 
 ## Pitfalls
 
@@ -129,5 +129,5 @@ Default hall Hermes. `--hall` / `MADA_HALL` = `claude` / `codex` / `pi`. Adapter
 - Conversation isolation ≠ git isolation. File-writing fugue needs a worktree.
 - Naming a composer is not a license to wake Brass. Quota 429 → cheaper chair, not a second Brass.
 - Envelope fields do not auto-spawn. `spawn_chair.py` auditions first; `--force` skips. Pass ≠ admit.
-- `tacet-guard.sh` is opt-in. Unset `MADA_SECTION` = fail-open. Do not flip `hooks_auto_accept`.
-- `harness-verdict.md` Remaining = **None**. After Katalog edits run `scripts/garden_score.py`.
+- `tacet-guard.sh` is opt-in. Unset `MADA_SECTION` = fail-open. `--lock-bass` = chmod. Do not flip `hooks_auto_accept`. `/restart` is human-only.
+- After Katalog edits run `scripts/garden_score.py`. Tacet ≠ sandbox.

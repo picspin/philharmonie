@@ -1,6 +1,6 @@
 # Audition chair (contract, not admission)
 
-Script: `scripts/audition_chair.py`. Contract: `scripts/test_audition_chair.sh` (36 cases).
+Script: `scripts/audition_chair.py`. Contract: `scripts/test_audition_chair.sh` (44 cases).
 Ceilings: `templates/section-contract.json`.
 
 `sender.section` is an **interface**. Schema-valid + toolset ⊆ ceiling + isolation lock + Mahler cue/budget/summary = **may audition**. `admit` is **always false**. Model routing / 429 / sol quota stay with the conductor. DeepSeek “everything is a plugin” = adapters plug in (`halls.md`). It does **not** auto-admit a chair.
@@ -44,5 +44,5 @@ python3 scripts/spawn_chair.py --envelope chair.json -q "<brief>"
 
 ```bash
 bash scripts/test_audition_chair.sh
-# expect: ALL 36 PASSED
+# expect: ALL 44 PASSED
 ```

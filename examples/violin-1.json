@@ -1,15 +1,11 @@
 {
-  "protocol": "Mada-A2A/1.0",
-  "message_type": "POINT_TO_POINT_HANDOVER",
   "movement": "II. Variation",
   "sender": {
     "section": "violin_1",
-    "agent_id": "subject",
     "model": "grok-4.6"
   },
   "cue": "SPEC_LOCKED",
   "ground_bass_ref": "SPEC.md#v1",
-  "sidechain": true,
   "isolation": "worktree",
   "allowed_toolsets": ["terminal", "file"],
   "tacet_paths": ["SPEC.md", "tests/locked/"],

@@ -1,15 +1,11 @@
 {
-  "protocol": "Mada-A2A/1.0",
-  "message_type": "COUNTERPOINT_CHALLENGE",
   "movement": "III. Counterpoint",
   "sender": {
     "section": "violin_2",
-    "agent_id": "review",
     "model": "gemini-3.7-flash-high"
   },
   "cue": "PATCH_READY",
   "ground_bass_ref": "SPEC.md#v1",
-  "sidechain": false,
   "isolation": "shared",
   "allowed_toolsets": ["terminal", "file"],
   "tacet_paths": ["SPEC.md"],

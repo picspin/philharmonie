@@ -25,7 +25,7 @@ Only when `MADA_SECTION` is set (conductor exports it on spawn):
 - `delegate_task` children unless the parent process itself has the hook **and** the env is inherited.
 - Model routing / 429 / Brass quota. Schema-valid ≠ auto-admit.
 
-Primary Tacet remains spawn `-t` / `allowed_toolsets`. This script is the second latch for chairs that still got `file`/`terminal`.
+Primary Tacet remains spawn `-t` / `allowed_toolsets`. This script is the second latch for chairs that still got `file`/`terminal`. OS latch is spawn `--lock-bass` (chmod). Tacet does **not** catch `cp` / `git add` / `chmod +w`. Tacet ≠ sandbox.
 
 ## Deploy (`hooks:` + allowlist)
 
@@ -48,7 +48,7 @@ from agent.shell_hooks import _record_approval
 _record_approval("pre_tool_call", "/absolute/path/to/philharmonie/scripts/tacet-guard.sh")
 ```
 
-Then `hermes hooks doctor`. Prove with a **child** chat (`MADA_SECTION=violin_2` write `SPEC.md` must block). Hook is per-process: a gateway that started with `hooks: {}` stays fail-open until restart. New children already load it. Unapproved hooks are skipped, not crash.
+Then `hermes hooks doctor`. Prove with a **child** chat (`MADA_SECTION=violin_2` write `SPEC.md` must block). Hook is per-process: a gateway that started with `hooks: {}` stays fail-open until a **human** `/restart`. Do not auto-restart. New children already load it. Unapproved hooks are skipped, not crash.
 
 ## Spawn (conductor)
 

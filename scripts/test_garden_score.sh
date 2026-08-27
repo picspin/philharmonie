@@ -116,6 +116,24 @@ PY
 run "compaction_tier costume fail" err python3 "$GARDEN" --root "$WORKDIR/tier"
 check "mentions compaction_tier" has_reason "compaction_tier"
 
+clone_tree "$WORKDIR/costume"
+python3 - "$WORKDIR/costume/templates/envelope.json" <<'PY'
+import json, sys
+from pathlib import Path
+p = Path(sys.argv[1])
+data = json.loads(p.read_text(encoding="utf-8"))
+props = data.setdefault("properties", {})
+props["protocol"] = {"type": "string"}
+props["message_type"] = {"type": "string"}
+props["sidechain"] = {"type": "boolean"}
+sender = props.setdefault("sender", {})
+sprops = sender.setdefault("properties", {})
+sprops["agent_id"] = {"type": "string"}
+p.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
+PY
+run "costume fields fail" err python3 "$GARDEN" --root "$WORKDIR/costume"
+check "mentions protocol costume" has_reason "protocol"
+
 clone_tree "$WORKDIR/enum"
 python3 - "$WORKDIR/enum/templates/section-contract.json" <<'PY'
 import json, sys
@@ -132,6 +150,30 @@ clone_tree "$WORKDIR/notest"
 rm -f "$WORKDIR/notest/scripts/test_spawn_chair.sh"
 run "missing contract test fail" err python3 "$GARDEN" --root "$WORKDIR/notest"
 check "mentions test_spawn_chair" has_reason "test_spawn_chair.sh"
+
+clone_tree "$WORKDIR/addprop"
+python3 - "$WORKDIR/addprop/templates/envelope.json" <<'PY'
+import json, sys
+from pathlib import Path
+p = Path(sys.argv[1])
+data = json.loads(p.read_text(encoding="utf-8"))
+data["additionalProperties"] = True
+p.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
+PY
+run "additionalProperties true fail" err python3 "$GARDEN" --root "$WORKDIR/addprop"
+check "mentions additionalProperties" has_reason "additionalProperties"
+
+clone_tree "$WORKDIR/nested"
+python3 - "$WORKDIR/nested/templates/envelope.json" <<'PY'
+import json, sys
+from pathlib import Path
+p = Path(sys.argv[1])
+data = json.loads(p.read_text(encoding="utf-8"))
+data["properties"]["sender"].pop("additionalProperties", None)
+p.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
+PY
+run "nested additionalProperties missing fail" err python3 "$GARDEN" --root "$WORKDIR/nested"
+check "mentions nested additionalProperties" has_reason "additionalProperties"
 
 echo
 if [[ "$fail" -eq 0 ]]; then
