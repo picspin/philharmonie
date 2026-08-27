@@ -115,6 +115,44 @@ else
   fail=$((fail + 1))
 fi
 
+n=$((n + 1))
+set +e
+python3 - "$HALLS" "$WORKDIR" <<'PY'
+import importlib.util, json, sys
+from pathlib import Path
+p = Path(sys.argv[1])
+spec = importlib.util.spec_from_file_location("halls", p)
+m = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(m)
+want = {
+  "hermes": {"worktree": True,  "tool_allowlist": True,  "model_pin": True,  "pre_tool_hook": "external"},
+  "claude": {"worktree": True,  "tool_allowlist": True,  "model_pin": True,  "pre_tool_hook": "external"},
+  "codex":  {"worktree": False, "tool_allowlist": False, "model_pin": True,  "pre_tool_hook": "external"},
+  "pi":     {"worktree": False, "tool_allowlist": False, "model_pin": False, "pre_tool_hook": "none"},
+}
+keys = ("worktree", "tool_allowlist", "model_pin", "pre_tool_hook")
+bad = []
+for name, exp in want.items():
+    hall = m.resolve_hall(name)
+    cap = getattr(hall, "capabilities", None)
+    if not isinstance(cap, dict):
+        bad.append(f"{name}: missing capabilities")
+        continue
+    for k in keys:
+        if cap.get(k) != exp[k]:
+            bad.append(f"{name}.{k}={cap.get(k)!r} want {exp[k]!r}")
+Path(sys.argv[2], "cap.json").write_text(json.dumps({"ok": not bad, "bad": bad}))
+sys.exit(0 if not bad else 1)
+PY
+cap_rc=$?
+set -e
+if [[ "$cap_rc" -eq 0 ]]; then
+  printf '  ok  capabilities table\n'
+else
+  printf '  FAIL capabilities table (%s)\n' "$(python3 -c 'import json; print(json.load(open("'"$WORKDIR"'/cap.json")).get("bad"))' 2>/dev/null || echo missing)"
+  fail=$((fail + 1))
+fi
+
 cat > "$WORKDIR/v1.json" <<'JSON'
 {
   "protocol": "Mada-A2A/1.0",
