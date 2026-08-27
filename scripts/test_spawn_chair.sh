@@ -365,6 +365,106 @@ run "MADA_HERMES override" ok \
   python3 "$SPAWN" --dry-run --envelope "$WORKDIR/v1.json" -q "impl brief"
 check "argv[0] is MADA_HERMES" has argv /usr/local/bin/other-hermes
 
+has_key() {
+  python3 - "$WORKDIR/last.json" "$1" "$2" <<'PY'
+import json, sys
+d = json.loads(open(sys.argv[1]).read())
+key, want = sys.argv[2], sys.argv[3]
+got = d.get(key)
+if want == "__true__":
+    sys.exit(0 if got is True else 1)
+if want == "__null__":
+    sys.exit(0 if got is None else 1)
+sys.exit(0 if str(got) == want else 1)
+PY
+}
+
+# 20. --supervise + /bin/true → result envelope ok
+run "supervise true ok" ok \
+  env MADA_HERMES=/bin/true \
+  python3 "$SPAWN" --supervise --force --envelope "$WORKDIR/v1.json" -q "impl brief"
+check "supervise status=ok" has_key status ok
+check "supervise exit_reason=exited" has_key exit_reason exited
+check "supervise exit_code=0" has_key exit_code 0
+
+# 21. --supervise + /bin/false → error
+run "supervise false error" err \
+  env MADA_HERMES=/bin/false \
+  python3 "$SPAWN" --supervise --force --envelope "$WORKDIR/v1.json" -q "impl brief"
+check "supervise false status=error" has_key status error
+
+# 22. timeout_sec=1 + sleep wrapper → timeout
+cat > "$WORKDIR/sleep.sh" <<'SH'
+#!/bin/sh
+sleep 30
+SH
+chmod +x "$WORKDIR/sleep.sh"
+env_json "$WORKDIR/to.json" <<'JSON'
+{
+  "protocol": "Mada-A2A/1.0",
+  "message_type": "POINT_TO_POINT_HANDOVER",
+  "movement": "II. Variation",
+  "sender": {"section": "violin_1", "agent_id": "v1", "model": "grok-4.6"},
+  "cue": "SPEC_LOCKED",
+  "ground_bass_ref": "SPEC.md#v1",
+  "isolation": "worktree",
+  "allowed_toolsets": ["terminal", "file"],
+  "budget": {"dynamic_mark": "mf", "timeout_sec": 1},
+  "payload": {"summary": "impl"}
+}
+JSON
+run "supervise timeout" err \
+  env MADA_HERMES="$WORKDIR/sleep.sh" \
+  python3 "$SPAWN" --supervise --force --envelope "$WORKDIR/to.json" -q "impl brief"
+check "supervise status=timeout" has_key status timeout
+check "supervise exit_reason=timeout" has_key exit_reason timeout
+
+# 23. --jsonl without --supervise refuse
+run "jsonl requires supervise" err \
+  python3 "$SPAWN" --dry-run --jsonl "$WORKDIR/x.jsonl" --envelope "$WORKDIR/v1.json" -q "impl brief"
+
+# 24. --supervise --jsonl writes two events
+run "supervise jsonl ok" ok \
+  env MADA_HERMES=/bin/true \
+  python3 "$SPAWN" --supervise --jsonl "$WORKDIR/run.jsonl" --force --envelope "$WORKDIR/v1.json" -q "impl brief"
+n=$((n + 1))
+if python3 - "$WORKDIR/run.jsonl" <<'PY'
+import json, sys
+rows = [json.loads(l) for l in open(sys.argv[1]) if l.strip()]
+assert len(rows) == 2, rows
+assert rows[0]["event"] == "spawn"
+assert rows[1]["event"] == "exit"
+PY
+then
+  printf '  ok  jsonl two events\n'
+else
+  printf '  FAIL jsonl two events\n'
+  fail=$((fail + 1))
+fi
+
+# 25. timeout_sec=0 refuse at plan
+env_json "$WORKDIR/zero.json" <<'JSON'
+{
+  "protocol": "Mada-A2A/1.0",
+  "message_type": "POINT_TO_POINT_HANDOVER",
+  "movement": "II. Variation",
+  "sender": {"section": "violin_1", "agent_id": "v1", "model": "grok-4.6"},
+  "cue": "SPEC_LOCKED",
+  "ground_bass_ref": "SPEC.md#v1",
+  "isolation": "worktree",
+  "allowed_toolsets": ["terminal", "file"],
+  "budget": {"dynamic_mark": "mf", "timeout_sec": 0},
+  "payload": {"summary": "impl"}
+}
+JSON
+run "timeout_sec=0 refuse" err \
+  python3 "$SPAWN" --dry-run --envelope "$WORKDIR/zero.json" -q "impl brief"
+
+# 26. dry-run exposes timeout_sec
+run "dry-run timeout_sec" ok \
+  python3 "$SPAWN" --dry-run --envelope "$WORKDIR/to.json" -q "impl brief"
+check "dry-run timeout_sec=1" has_key timeout_sec 1
+
 echo
 if [[ "$fail" -eq 0 ]]; then
   echo "ALL $n PASSED"
