@@ -48,7 +48,7 @@ from agent.shell_hooks import _record_approval
 _record_approval("pre_tool_call", "/absolute/path/to/philharmonie/scripts/tacet-guard.sh")
 ```
 
-Then `hermes hooks doctor`. Prove with a **child** chat (`MADA_SECTION=violin_2` write `SPEC.md` must block). Hook is per-process: a gateway that started with `hooks: {}` stays fail-open until restart. New children already load it. Unapproved hooks are skipped, not crash.
+Then `hermes hooks doctor`. Prove with a **child** chat (`MADA_SECTION=violin_2` write `SPEC.md` must block). Hook is per-process: a gateway that started with `hooks: {}` stays fail-open until a **human** `/restart`. Do not auto-restart. New children already load it. Unapproved hooks are skipped, not crash.
 
 ## Spawn (conductor)
 

@@ -159,7 +159,7 @@ Do **not** add a costume field for “compaction tier 1–5”. Diminuendo is co
 | Audition | `scripts/audition_chair.py` | 38 cases. Pass ≠ admit |
 | Spawn | `scripts/spawn_chair.py` | 80 cases. Default audition; `--force` skips; `--supervise` waits; `--ticket` grants; `--lock-bass` chmods |
 | Halls | `scripts/halls.py` | `--hall` / `MADA_HALL`. `test_halls.sh` |
-| Tacet | `scripts/tacet-guard.sh` | 16 cases. Opt-in `pre_tool_call`. Fail-open if `MADA_SECTION` unset |
+| Tacet | `scripts/tacet-guard.sh` | 16 cases. Opt-in `pre_tool_call`. Fail-open if `MADA_SECTION` unset. `/restart` human-only |
 | Garden | `scripts/garden_score.py` | 16 cases. Catalog ↔ parts, no costume fields |
 | Snare | `scripts/snare_score.py` | 27 cases. Target `AGENTS.md` 4 rungs |
 

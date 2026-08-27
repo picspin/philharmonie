@@ -48,9 +48,9 @@ Same-hall capability declaration is allowed. Tacet ≠ sandbox.
 | Run ticket / admission | landed |
 | Ground bass OS/Git readonly | landed |
 | Delete costume schema fields (protocol bus, sidechain, agent_id) | landed |
-| Diminuendo | this wave. Convention. `/compress` at a movement boundary. No field. |
-| `/restart` | next. Human only. `MADA_SECTION` unset here = fail-open by design. |
+| Diminuendo | landed. Convention. `/compress` at a movement boundary. No field. |
+| `/restart` | this wave. Human only. Unset `MADA_SECTION` = fail-open. Do not auto-restart. |
 
-Next `继续` / `下一票` / go after this lock = `/restart` is human-only (docs). Do not invent a hall. Do not auto-restart.
+Costume wave closed. Next `继续` / `下一票` / go = do not invent a hall. Do not add a field nobody reads.
 
 Details: `composer-scores.md` § Fugue isolation, `spawn-chair.md`, `tacet-guard.md`, `audition-chair.md`, `garden-score.md`, `snare-score.md`.

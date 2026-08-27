@@ -129,5 +129,5 @@ Default hall Hermes. `--hall` / `MADA_HALL` = `claude` / `codex` / `pi`. Hall ca
 - Conversation isolation ≠ git isolation. File-writing fugue needs a worktree.
 - Naming a composer is not a license to wake Brass. Quota 429 → cheaper chair, not a second Brass.
 - Envelope fields do not auto-spawn. `spawn_chair.py` auditions first; `--force` skips. Pass ≠ admit.
-- `tacet-guard.sh` is opt-in. Unset `MADA_SECTION` = fail-open. `--lock-bass` = chmod. Do not flip `hooks_auto_accept`.
+- `tacet-guard.sh` is opt-in. Unset `MADA_SECTION` = fail-open. `--lock-bass` = chmod. Do not flip `hooks_auto_accept`. `/restart` is human-only.
 - After Katalog edits run `scripts/garden_score.py`. Tacet ≠ sandbox.
