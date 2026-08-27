@@ -23,13 +23,13 @@ Small tested harness for several LLM agents, or one agent in several roles. 中�
 | Musikverein / 金色大厅 | Shoe-box. One resident orchestra. The room *is* the Wien Philharmoniker. | Closed. A harness that swaps models is not a resident band. |
 | Berliner Philharmonie (Scharoun) | Vineyard terraces around a sunken podium. Conductor in the well. Sections sit on replaceable terraces. | This repo. Chairs are interfaces. The hall stays; the orchestra can change. |
 
-仓库名来自作者住过的柏林，以及那座大厅。中文仍可叫金色大厅，那是音色，不是平面图。
+虽心向往之，但我没有去过金色大厅，仓库名来自作者曾住过的柏林，以及那座爱乐团大厅。中文仍可叫金色大厅，那是音色，不是平面图。
 
 ---
 
 ## What this is / 这是什么
 
-Borrowed habits. Not a new runtime:
+Philhamonie严格意义上说是一种从乐团和曲谱编排的脑洞出发———设计的一种agent harness。Borrowed habits. Not a new runtime:
 
 - **Bach — ground bass.** `SPEC.md`, locked tests, and API contracts do not move during a variation.
 - **Mahler — Tacet.** A chair that is not cued does not get tools. Empty `allowed_toolsets` = mute = refuse to spawn.
@@ -38,7 +38,7 @@ Borrowed habits. Not a new runtime:
 
 Default adapter speaks [Hermes](https://github.com/NousResearch/hermes-agent) (`hermes chat -w/-t`). `--hall claude|codex|pi` (or `MADA_HALL`) swaps the podium. Envelope, audition, Tacet, garden, and snare stay the hall.
 
-它不是又一个 agent 框架。默认适配 Hermes；`--hall` 换指挥台，信封和闩是大厅。
+它不是又一个 agent 框架。默认适配 Hermes, Claude code；`--hall` 换指挥台，信封和闩是大厅。
 
 ---
 
