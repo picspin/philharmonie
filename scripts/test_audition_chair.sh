@@ -314,6 +314,20 @@ env_json "$WORKDIR/nosum.json" <<'JSON'
 JSON
 run "missing payload.summary fail" fail python3 "$AUD" --envelope "$WORKDIR/nosum.json"
 
+env_json "$WORKDIR/bare.json" <<'JSON'
+{
+  "movement": "II. Variation",
+  "sender": {"section": "violin_1", "model": "grok-4.6"},
+  "cue": "SPEC_LOCKED",
+  "ground_bass_ref": "SPEC.md#v1",
+  "isolation": "worktree",
+  "allowed_toolsets": ["terminal", "file"],
+  "budget": {"dynamic_mark": "mf"},
+  "payload": {"summary": "impl"}
+}
+JSON
+run "bare envelope pass" pass python3 "$AUD" --envelope "$WORKDIR/bare.json"
+
 echo
 if [[ "$fail" -eq 0 ]]; then
   echo "ALL $n PASSED"

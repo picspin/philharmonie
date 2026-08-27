@@ -1,39 +1,29 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "MadaSymphonyMessage",
-  "description": "Standard Envelope for Mada Symphony A2A and ANP communication. Isolation fields drive spawn; they are not costume.",
+  "description": "Envelope for Mada Symphony spawn. Isolation fields drive spawn; they are not costume. protocol / message_type / sidechain / agent_id are refused.",
   "type": "object",
-  "required": ["protocol", "message_type", "movement", "sender", "cue", "ground_bass_ref", "payload"],
+  "required": ["movement", "sender", "cue", "ground_bass_ref", "payload"],
   "properties": {
-    "protocol": {
-      "type": "string",
-      "enum": ["Mada-A2A/1.0", "Mada-ANP/1.0"]
-    },
-    "message_type": {
-      "type": "string",
-      "enum": ["EVENT_BROADCAST", "POINT_TO_POINT_HANDOVER", "COUNTERPOINT_CHALLENGE", "STRETTO_ARBITRATION", "TACET_DIRECTIVE"]
-    },
     "movement": {
       "type": "string",
       "description": "Current movement name, e.g., 'I. Overture', 'II. Variation', 'III. Counterpoint'"
     },
     "sender": {
       "type": "object",
-      "required": ["section", "agent_id", "model"],
+      "required": ["section", "model"],
       "properties": {
         "section": {
           "type": "string",
           "enum": ["conductor", "oboe", "violin_1", "violin_2", "viola", "cello", "contrabass", "horn", "flute", "organ", "heavy_brass", "snare_drum", "cymbals", "harp", "bassoon", "trumpet"]
         },
-        "agent_id": { "type": "string" },
         "model": { "type": "string" }
       }
     },
     "recipient": {
       "type": "object",
       "properties": {
-        "section": { "type": "string" },
-        "agent_id": { "type": "string" }
+        "section": { "type": "string" }
       }
     },
     "cue": {
@@ -43,11 +33,6 @@
     "ground_bass_ref": {
       "type": "string",
       "description": "Reference to immutable spec/contract, e.g., 'SPEC.md#v1.0' or commit hash"
-    },
-    "sidechain": {
-      "type": "boolean",
-      "default": false,
-      "description": "True → isolated conversation (delegate_task or hermes chat -w). Does not by itself create a git worktree."
     },
     "isolation": {
       "type": "string",

@@ -116,6 +116,24 @@ PY
 run "compaction_tier costume fail" err python3 "$GARDEN" --root "$WORKDIR/tier"
 check "mentions compaction_tier" has_reason "compaction_tier"
 
+clone_tree "$WORKDIR/costume"
+python3 - "$WORKDIR/costume/templates/envelope.json" <<'PY'
+import json, sys
+from pathlib import Path
+p = Path(sys.argv[1])
+data = json.loads(p.read_text(encoding="utf-8"))
+props = data.setdefault("properties", {})
+props["protocol"] = {"type": "string"}
+props["message_type"] = {"type": "string"}
+props["sidechain"] = {"type": "boolean"}
+sender = props.setdefault("sender", {})
+sprops = sender.setdefault("properties", {})
+sprops["agent_id"] = {"type": "string"}
+p.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
+PY
+run "costume fields fail" err python3 "$GARDEN" --root "$WORKDIR/costume"
+check "mentions protocol costume" has_reason "protocol"
+
 clone_tree "$WORKDIR/enum"
 python3 - "$WORKDIR/enum/templates/section-contract.json" <<'PY'
 import json, sys
