@@ -584,6 +584,93 @@ JSON
 run "ticket extra key" err \
   python3 "$SPAWN" --dry-run --ticket "$WORKDIR/extra.ticket" --envelope "$WORKDIR/v1.json" -q "impl brief"
 
+# 37. --lock-bass without supervise/dry-run refuse
+run "lock-bass needs supervise" err \
+  python3 "$SPAWN" --lock-bass "$WORKDIR" --force --envelope "$WORKDIR/v1.json" -q "impl brief"
+
+# 38. missing root
+run "lock-bass missing root" err \
+  python3 "$SPAWN" --dry-run --lock-bass "$WORKDIR/no-such-root" --envelope "$WORKDIR/v1.json" -q "impl brief"
+
+# 39. dry-run lists SPEC.md, does not chmod
+printf 'bass\n' > "$WORKDIR/SPEC.md"
+chmod 644 "$WORKDIR/SPEC.md"
+run "lock-bass dry-run" ok \
+  python3 "$SPAWN" --dry-run --lock-bass "$WORKDIR" --envelope "$WORKDIR/v1.json" -q "impl brief"
+n=$((n + 1))
+if python3 - "$WORKDIR/last.json" <<'PY'
+import json, sys
+d = json.loads(open(sys.argv[1]).read())
+locked = (d.get("lock_bass") or {}).get("locked") or []
+sys.exit(0 if "SPEC.md" in locked else 1)
+PY
+then
+  printf '  ok  lock-bass lists SPEC.md\n'
+else
+  printf '  FAIL lock-bass lists SPEC.md\n'
+  fail=$((fail + 1))
+fi
+n=$((n + 1))
+if [[ -w "$WORKDIR/SPEC.md" ]]; then
+  printf '  ok  dry-run does not chmod\n'
+else
+  printf '  FAIL dry-run does not chmod\n'
+  fail=$((fail + 1))
+fi
+
+# 40. supervise: child cannot write SPEC.md
+cat > "$WORKDIR/fake-hermes" <<'SH'
+#!/bin/sh
+python3 -c "import os,sys; p=os.environ['MADA_LOCK_PROBE']; open(p,'w').write('pwned')"
+SH
+chmod +x "$WORKDIR/fake-hermes"
+# v1.json already has isolation worktree; fake binary ignores argv
+export MADA_LOCK_PROBE="$WORKDIR/SPEC.md"
+run "lock-bass blocks write" err \
+  env MADA_HERMES="$WORKDIR/fake-hermes" MADA_LOCK_PROBE="$WORKDIR/SPEC.md" \
+  python3 "$SPAWN" --supervise --force --lock-bass "$WORKDIR" --envelope "$WORKDIR/v1.json" -q "impl brief"
+unset MADA_LOCK_PROBE
+n=$((n + 1))
+if grep -q pwned "$WORKDIR/SPEC.md" 2>/dev/null; then
+  printf '  FAIL SPEC.md stayed unpwned\n'
+  fail=$((fail + 1))
+else
+  printf '  ok  SPEC.md stayed unpwned\n'
+fi
+
+# 41. restore after supervise
+n=$((n + 1))
+if [[ -w "$WORKDIR/SPEC.md" ]]; then
+  printf '  ok  restore writable after supervise\n'
+else
+  printf '  FAIL restore writable after supervise\n'
+  fail=$((fail + 1))
+fi
+
+# 42. extra tacet_paths listed
+mkdir -p "$WORKDIR/tests"
+printf 'k\n' > "$WORKDIR/tests/test_locked_kernel.py"
+chmod 644 "$WORKDIR/tests/test_locked_kernel.py"
+run "lock-bass extra tacet dry-run" ok \
+  python3 "$SPAWN" --dry-run --lock-bass "$WORKDIR" --envelope "$WORKDIR/v1.json" -q "impl brief"
+n=$((n + 1))
+if python3 - "$WORKDIR/last.json" <<'PY'
+import json, sys
+d = json.loads(open(sys.argv[1]).read())
+locked = (d.get("lock_bass") or {}).get("locked") or []
+sys.exit(0 if "tests/test_locked_kernel.py" in locked else 1)
+PY
+then
+  printf '  ok  lock-bass lists extra tacet path\n'
+else
+  printf '  FAIL lock-bass lists extra tacet path\n'
+  fail=$((fail + 1))
+fi
+
+# 43. --force still requires lock-bass root to exist
+run "force still lock-bass root" err \
+  python3 "$SPAWN" --dry-run --force --lock-bass "$WORKDIR/no-such-root" --envelope "$WORKDIR/v1.json" -q "impl brief"
+
 echo
 if [[ "$fail" -eq 0 ]]; then
   echo "ALL $n PASSED"

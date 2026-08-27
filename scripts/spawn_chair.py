@@ -17,6 +17,7 @@ import argparse
 import json
 import os
 import signal
+import stat
 import subprocess
 import sys
 from copy import deepcopy
@@ -281,6 +282,91 @@ def apply_ticket(
     return timeout_sec if timeout_sec is not None else cap
 
 
+# Keep in sync with tacet-guard.sh DEFAULT_BASS. Duplicate on purpose — no new garden part.
+DEFAULT_BASS = (
+    "SPEC.md",
+    "AGENTS.md",
+    "contracts/",
+    "src/contracts/",
+    "locked_tests/",
+    "tests/locked/",
+)
+
+
+def collect_bass(
+    root: Path, extra: Sequence[str]
+) -> Tuple[List[str], List[str], List[Path]]:
+    if not root.is_dir() or root.is_symlink():
+        raise SpawnError(f"--lock-bass root is not a directory: {root}")
+    root = root.resolve()
+    items: List[str] = list(DEFAULT_BASS)
+    for x in extra:
+        x = str(x).strip()
+        if x:
+            items.append(x)
+    locked: List[str] = []
+    missing: List[str] = []
+    to_chmod: List[Path] = []
+    seen: set[Path] = set()
+
+    def add_path(p: Path, rel: str) -> None:
+        if p in seen:
+            return
+        seen.add(p)
+        to_chmod.append(p)
+        if rel not in locked:
+            locked.append(rel)
+
+    for item in items:
+        rel_item = item.replace("\\", "/").strip()
+        if not rel_item or rel_item.startswith("/") or ".." in Path(rel_item).parts:
+            raise SpawnError(f"lock-bass path must be relative: {item!r}")
+        raw = root / rel_item
+        if raw.is_symlink():
+            raise SpawnError(f"lock-bass refuses symlink: {rel_item}")
+        if not raw.exists():
+            missing.append(rel_item.rstrip("/"))
+            continue
+        cand = raw.resolve()
+        if cand != root and root not in cand.parents:
+            raise SpawnError(f"lock-bass path escapes root: {rel_item}")
+        if cand.is_dir():
+            add_path(cand, cand.relative_to(root).as_posix() + "/")
+            for child in cand.rglob("*"):
+                if child.is_symlink() or not child.exists():
+                    continue
+                try:
+                    resolved = child.resolve()
+                except OSError:
+                    continue
+                if resolved != root and root not in resolved.parents:
+                    continue
+                add_path(resolved, resolved.relative_to(root).as_posix())
+        else:
+            add_path(cand, cand.relative_to(root).as_posix())
+    return locked, missing, to_chmod
+
+
+def apply_lock(paths: Sequence[Path]) -> List[Tuple[Path, int]]:
+    saved: List[Tuple[Path, int]] = []
+    for p in paths:
+        mode = p.stat().st_mode
+        saved.append((p, mode))
+        if p.is_dir():
+            os.chmod(p, 0o555)
+        else:
+            os.chmod(p, stat.S_IMODE(mode) & ~0o222)
+    return saved
+
+
+def restore_lock(saved: Sequence[Tuple[Path, int]]) -> None:
+    for p, mode in reversed(list(saved)):
+        try:
+            os.chmod(p, stat.S_IMODE(mode))
+        except OSError:
+            pass
+
+
 def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
     p = argparse.ArgumentParser(description="Spawn a Mada Symphony chair from an envelope")
     p.add_argument("--envelope", help="Path to envelope JSON (default: stdin)")
@@ -296,6 +382,11 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
     )
     p.add_argument("--jsonl", help="Append spawn/exit JSONL events (requires --supervise)")
     p.add_argument("--ticket", help="Conductor run ticket JSON (run_id, issued_by, expires_at)")
+    p.add_argument(
+        "--lock-bass",
+        metavar="DIR",
+        help="chmod ground-bass paths read-only under DIR (requires --supervise or --dry-run)",
+    )
     p.add_argument(
         "--hall",
         help=f"Runtime adapter: {'|'.join(HALLS)} (default hermes / MADA_HALL)",
@@ -426,7 +517,12 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     if args.jsonl and not args.supervise:
         die("--jsonl requires --supervise")
         return 2
+    if args.lock_bass and not args.supervise and not args.dry_run:
+        die("--lock-bass requires --supervise or --dry-run")
+        return 2
     ticket: Optional[Dict[str, Any]] = None
+    lock_info: Optional[Dict[str, Any]] = None
+    lock_paths: List[Path] = []
     try:
         if args.ticket:
             ticket = load_ticket(args.ticket)
@@ -450,6 +546,18 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                 timeout_sec=timeout_sec,
             )
             child_env["MADA_RUN_ID"] = ticket["run_id"]
+        if args.lock_bass:
+            extra = [
+                x.strip()
+                for x in child_env.get("MADA_TACET_PATHS", "").split(",")
+                if x.strip()
+            ]
+            locked, missing, lock_paths = collect_bass(Path(args.lock_bass), extra)
+            lock_info = {
+                "root": str(Path(args.lock_bass).resolve()),
+                "locked": locked,
+                "missing": missing,
+            }
     except SpawnError as exc:
         die(exc.message)
         return 2
@@ -475,6 +583,8 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                 "issued_by": ticket["issued_by"],
                 "expires_at": ticket["expires_at"],
             }
+        if lock_info:
+            body["lock_bass"] = lock_info
         sys.stdout.write(json.dumps(body, ensure_ascii=False) + "\n")
         return 0
 
@@ -483,17 +593,23 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     if not args.supervise:
         os.execvpe(cmd[0], cmd, merged)
         return 1  # unreachable
-    return supervise(
-        cmd,
-        merged,
-        hall=hall,
-        cap=cap,
-        audition=gate,
-        timeout_sec=timeout_sec,
-        jsonl_path=args.jsonl,
-        run_id=run_id,
-        attempt=attempt,
-    )
+    saved: List[Tuple[Path, int]] = []
+    if lock_paths:
+        saved = apply_lock(lock_paths)
+    try:
+        return supervise(
+            cmd,
+            merged,
+            hall=hall,
+            cap=cap,
+            audition=gate,
+            timeout_sec=timeout_sec,
+            jsonl_path=args.jsonl,
+            run_id=run_id,
+            attempt=attempt,
+        )
+    finally:
+        restore_lock(saved)
 
 
 if __name__ == "__main__":
