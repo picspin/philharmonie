@@ -22,7 +22,7 @@ Token economy + structural correctness: peak expression with minimal sounding bo
 | `references/garden-score.md` | Katalog freshness latch. 0-token. |
 | `references/snare-score.md` | Target-repo `AGENTS.md` 4-rung latch. |
 | `scripts/tacet-guard.sh` | Child-process latch. `scripts/test_tacet_guard.sh` = 16 |
-| `scripts/spawn_chair.py` | Spawn. Default audition; `--force` skips. `scripts/test_spawn_chair.sh` = 69 |
+| `scripts/spawn_chair.py` | Spawn. Default audition; `--force` skips. `scripts/test_spawn_chair.sh` = 80 |
 | `references/halls.md` | `--hall` / `MADA_HALL`. `scripts/halls.py` + `scripts/test_halls.sh` |
 | `scripts/audition_chair.py` | Audition. `scripts/test_audition_chair.sh` = 36 |
 | `scripts/garden_score.py` | Doc-garden. `scripts/test_garden_score.sh` |
@@ -121,7 +121,7 @@ ANP = lifecycle bus (`SPEC_LOCKED`, `TEST_PASSED`, `CIRCUIT_BREAK`). A2A = fugue
 
 Spawn 403/429 → in-session TDD + Snare. Do not stall.
 
-Default hall Hermes. `--hall` / `MADA_HALL` = `claude` / `codex` / `pi`. Hall cannot enforce envelope → spawn exit 2. `--ticket` = conductor grant (`run_id`, expiry). Pass ≠ admit. No signature.
+Default hall Hermes. `--hall` / `MADA_HALL` = `claude` / `codex` / `pi`. Hall cannot enforce envelope → spawn exit 2. `--ticket` = conductor grant (`run_id`, expiry). `--lock-bass` = chmod. Pass ≠ admit. No signature.
 
 ## Pitfalls
 
@@ -129,5 +129,5 @@ Default hall Hermes. `--hall` / `MADA_HALL` = `claude` / `codex` / `pi`. Hall ca
 - Conversation isolation ≠ git isolation. File-writing fugue needs a worktree.
 - Naming a composer is not a license to wake Brass. Quota 429 → cheaper chair, not a second Brass.
 - Envelope fields do not auto-spawn. `spawn_chair.py` auditions first; `--force` skips. Pass ≠ admit.
-- `tacet-guard.sh` is opt-in. Unset `MADA_SECTION` = fail-open. Do not flip `hooks_auto_accept`.
+- `tacet-guard.sh` is opt-in. Unset `MADA_SECTION` = fail-open. `--lock-bass` = chmod. Do not flip `hooks_auto_accept`.
 - After Katalog edits run `scripts/garden_score.py`. Tacet ≠ sandbox.

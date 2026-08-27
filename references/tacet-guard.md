@@ -25,7 +25,7 @@ Only when `MADA_SECTION` is set (conductor exports it on spawn):
 - `delegate_task` children unless the parent process itself has the hook **and** the env is inherited.
 - Model routing / 429 / Brass quota. Schema-valid ≠ auto-admit.
 
-Primary Tacet remains spawn `-t` / `allowed_toolsets`. This script is the second latch for chairs that still got `file`/`terminal`.
+Primary Tacet remains spawn `-t` / `allowed_toolsets`. This script is the second latch for chairs that still got `file`/`terminal`. OS latch is spawn `--lock-bass` (chmod). Tacet does **not** catch `cp` / `git add` / `chmod +w`. Tacet ≠ sandbox.
 
 ## Deploy (`hooks:` + allowlist)
 

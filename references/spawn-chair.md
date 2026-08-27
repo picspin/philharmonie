@@ -1,6 +1,6 @@
 # Spawn chair (envelope → argv + env)
 
-Script: `scripts/spawn_chair.py`. Contract: `scripts/test_spawn_chair.sh` (69 cases).
+Script: `scripts/spawn_chair.py`. Contract: `scripts/test_spawn_chair.sh` (80 cases).
 
 This is the conductor's **first latch**. Isolation fields on the envelope become hall argv + `MADA_*` exports. Default hall is Hermes. `--hall` / `MADA_HALL` selects `claude` / `codex` / `pi`. The JSON is not read by the child — only by this wrapper.
 
@@ -24,6 +24,7 @@ Every spawn fixture now needs Mahler `budget.dynamic_mark`. Wiring audition as t
 | `--hall` / `MADA_HALL` | adapter (`hermes` default). Capabilities in dry-run JSON |
 | `budget.timeout_sec` | `--supervise` wall clock. Default `execvpe` ignores it. `<=0` refuses |
 | `--ticket` | sidecar grant. `run_id` → `MADA_RUN_ID`. Optional. No crypto |
+| `--lock-bass DIR` | chmod ground-bass read-only. Needs `--supervise` or `--dry-run`. Restore after |
 
 Hermes always `--yolo`. Query = `-q` or `payload.summary`. Other halls: see `halls.md`.
 
@@ -54,6 +55,8 @@ Schema-valid ≠ in the pool. Wrapper does **not** check 429 / sol quota.
 - `--ticket` hall or section mismatch
 - envelope `timeout_sec` exceeds ticket `timeout_sec`
 - `--force` does **not** skip the ticket
+- `--lock-bass` without `--supervise` / `--dry-run`
+- `--lock-bass` missing root / symlink / path escape
 
 ## Usage
 
@@ -74,11 +77,14 @@ python3 scripts/spawn_chair.py --supervise --jsonl run.jsonl --envelope chair.js
 # conductor grant (optional sidecar; --force does not skip)
 python3 scripts/spawn_chair.py --dry-run --ticket run.ticket --envelope chair.json -q "<brief>"
 
+# OS latch: chmod ground-bass under the *target* repo (not this skill)
+python3 scripts/spawn_chair.py --supervise --lock-bass /path/to/project --envelope chair.json -q "<brief>"
+
 # stdin
 python3 scripts/spawn_chair.py --dry-run -q "<brief>" < chair.json
 ```
 
-Hall binary pins: `MADA_HERMES` / `MADA_CLAUDE` / `MADA_CODEX` / `MADA_PI` (see `halls.md`). Default non-`--dry-run` is `os.execvpe` — it **replaces** this process. `--supervise` waits, kills the process group on wall timeout (exit 124), and prints a result envelope (`status` / `exit_reason` / `exit_code`). `--jsonl` appends `spawn` then `exit`. `--ticket` is a conductor grant (`run_id`, `issued_by=conductor`, timezone-aware `expires_at`). Optional caps: `hall`, `section`, `timeout_sec`. Extra keys refuse. No signature — a process that can write the file can forge one. Pass ≠ admit. Run execvpe as a child, never in the conductor's own PID.
+Hall binary pins: `MADA_HERMES` / `MADA_CLAUDE` / `MADA_CODEX` / `MADA_PI` (see `halls.md`). Default non-`--dry-run` is `os.execvpe` — it **replaces** this process. `--supervise` waits, kills the process group on wall timeout (exit 124), and prints a result envelope (`status` / `exit_reason` / `exit_code`). `--jsonl` appends `spawn` then `exit`. `--ticket` is a conductor grant (`run_id`, `issued_by=conductor`, timezone-aware `expires_at`). Optional caps: `hall`, `section`, `timeout_sec`. Extra keys refuse. No signature — a process that can write the file can forge one. Pass ≠ admit. `--lock-bass DIR` chmods `SPEC.md` / `AGENTS.md` / `contracts/` / locked tests / `tacet_paths` `a-w`, then restores after `--supervise`. Dry-run lists, does not chmod. Bare execvpe refuses (cannot restore). Not a bind-mount, not git skip-worktree, not a GitHub ruleset. Same uid can `chmod +w` — Tacet ≠ sandbox. Run execvpe as a child, never in the conductor's own PID.
 
 ## Pair with tacet-guard
 
@@ -88,5 +94,5 @@ Wrapper is latch 1 (`-t` + env). `tacet-guard.sh` is latch 2 on the **child** `p
 
 ```bash
 bash scripts/test_spawn_chair.sh
-# expect: ALL 69 PASSED
+# expect: ALL 80 PASSED
 ```
