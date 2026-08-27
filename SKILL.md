@@ -102,8 +102,7 @@ Schema: `templates/envelope.json`. Spawn reader: `scripts/spawn_chair.py`. Audit
 
 | Field | Drives |
 |-------|--------|
-| `sidechain` | Isolated conversation (subagent or worktree chat) |
-| `isolation` | `worktree` (writers) vs `shared` (review / Snare) |
+| `isolation` | `worktree` (writers) vs `shared` (review / Snare). Hall without worktree → refuse |
 | `allowed_toolsets` | Heteronomous Tacet → spawn tool gate. Empty = mute |
 | `tacet_paths` | Ground-bass paths this chair must not write |
 
@@ -121,7 +120,7 @@ ANP = lifecycle bus (`SPEC_LOCKED`, `TEST_PASSED`, `CIRCUIT_BREAK`). A2A = fugue
 
 Spawn 403/429 → in-session TDD + Snare. Do not stall.
 
-Default hall Hermes. `--hall` / `MADA_HALL` = `claude` / `codex` / `pi`. Adapters plug in; chairs do not auto-admit.
+Default hall Hermes. `--hall` / `MADA_HALL` = `claude` / `codex` / `pi`. Hall cannot enforce envelope → spawn exit 2.
 
 ## Pitfalls
 
@@ -130,4 +129,4 @@ Default hall Hermes. `--hall` / `MADA_HALL` = `claude` / `codex` / `pi`. Adapter
 - Naming a composer is not a license to wake Brass. Quota 429 → cheaper chair, not a second Brass.
 - Envelope fields do not auto-spawn. `spawn_chair.py` auditions first; `--force` skips. Pass ≠ admit.
 - `tacet-guard.sh` is opt-in. Unset `MADA_SECTION` = fail-open. Do not flip `hooks_auto_accept`.
-- `harness-verdict.md` Remaining = **None**. After Katalog edits run `scripts/garden_score.py`.
+- After Katalog edits run `scripts/garden_score.py`. Tacet ≠ sandbox.

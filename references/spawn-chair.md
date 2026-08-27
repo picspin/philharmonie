@@ -17,11 +17,11 @@ Every spawn fixture now needs Mahler `budget.dynamic_mark`. Wiring audition as t
 | `sender.section` | `MADA_SECTION` |
 | `allowed_toolsets` | `-t` csv + `MADA_ALLOWED_TOOLSETS` |
 | `tacet_paths` | `MADA_TACET_PATHS` |
-| `isolation: worktree` | Hermes `-w` / Claude `--worktree`. Codex / Pi: env only |
+| `isolation` | `MADA_ISOLATION`. Hermes `-w` / Claude `--worktree` / **Codex·Pi refuse `worktree`** |
 | `isolation: shared` | no isolation flag |
-| `sender.model` | Hermes `-m` + `--provider`; Claude `--model`; Codex `-m`; Pi: env only |
+| `sender.model` | Hermes `-m` + `--provider`; Claude `--model`; Codex `-m`; **Pi refuse (cannot pin)** |
 | `--brass-cue` | `MADA_BRASS_CUE=1` |
-| `--hall` / `MADA_HALL` | adapter (`hermes` default) |
+| `--hall` / `MADA_HALL` | adapter (`hermes` default). Capabilities in dry-run JSON |
 
 Hermes always `--yolo`. Query = `-q` or `payload.summary`. Other halls: see `halls.md`.
 
@@ -43,6 +43,9 @@ Schema-valid ≠ in the pool. Wrapper does **not** check 429 / sol quota.
 - invalid JSON
 - cheap chair + `gpt-5.6-sol` / `*-sol` without `--brass-cue`
 - `heavy_brass` may use sol; `conductor --brass-cue` may override section and wake it
+- hall cannot enforce `isolation=worktree`
+- hall cannot pin `sender.model`
+- hall cannot enforce `allowed_toolsets` (unless `pre_tool_hook=external`)
 
 ## Usage
 

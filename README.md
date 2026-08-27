@@ -125,8 +125,9 @@ Ceilings: [`templates/section-contract.json`](templates/section-contract.json).
 ```bash
 # dry-run any hall — same envelope, different argv
 python3 scripts/spawn_chair.py --hall claude --dry-run --envelope examples/violin-1.json
-python3 scripts/spawn_chair.py --hall codex  --dry-run --envelope examples/violin-1.json
-python3 scripts/spawn_chair.py --hall pi     --dry-run --envelope examples/violin-1.json
+# Codex refuses worktree (violin-1). Use a shared envelope:
+python3 scripts/spawn_chair.py --hall codex --dry-run --envelope examples/violin-2.json
+# Pi cannot pin sender.model this wave → exit 2
 
 export MADA_HALL=claude          # default for this shell
 export MADA_CLAUDE=$(command -v claude)
@@ -139,10 +140,10 @@ export MADA_HERMES=$(command -v hermes)   # Hermes binary pin still works
 |------|-----------|-----------|------------|
 | `hermes` | `-w` | `-t` + `--yolo` | `MADA_HERMES` / `HERMES` |
 | `claude` | `--worktree` | `--allowedTools` | `MADA_CLAUDE` / `CLAUDE` |
-| `codex` | none (no invented `-w`) | none (no invented `-t`) | `MADA_CODEX` / `CODEX` |
-| `pi` | none | none | `MADA_PI` / `PI` |
+| `codex` | refuse envelope `worktree` | env + external hook | `MADA_CODEX` / `CODEX` |
+| `pi` | refuse | refuse (no hook) | `MADA_PI` / `PI` — cannot pin model |
 
-Codex / Pi have no spawn-time tool gate — install `tacet-guard.sh` as that runtime's pre-tool hook, or wrap the binary. Recipe: [`references/halls.md`](references/halls.md).
+Codex shared+tools still spawns; tool gate is the hook, not argv. Pi cannot spawn this wave. Recipe: [`references/halls.md`](references/halls.md).
 
 Do **not** add a costume field for “compaction tier 1–5”. Compress at movement boundaries.
 

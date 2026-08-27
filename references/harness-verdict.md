@@ -38,13 +38,19 @@ Hook land: exact YAML replace of `hooks: {}` + `shell_hooks._record_approval`. `
 
 ## Remaining
 
-**None.** Wave closed 2026-08-24. Do not invent a new hall.
+Wave closed 2026-08-24 on *costume* (no `compaction_tier`, no new composer, no new hall).
+Same-hall capability declaration is allowed. Tacet ≠ sandbox.
 
 | Item | Status |
 |------|--------|
+| Hall capability ∩ fail-closed | this wave |
+| Thin supervisor (`timeout_sec`, result envelope, JSONL) | next |
+| Run ticket / admission | not yet |
+| Ground bass OS/Git readonly | not yet |
+| Delete costume schema fields (protocol bus, sidechain, agent_id) | not yet |
 | Diminuendo | Convention. Hermes compressor stays threshold/target. |
-| `/restart` | Human only. This gateway started with `hooks: {}`; children already latched. `MADA_SECTION` unset here = fail-open by design. |
+| `/restart` | Human only. `MADA_SECTION` unset here = fail-open by design. |
 
-Next `继续` / `下一票` / go = a **different** ticket the user names. Not another latch.
+Next `继续` / `下一票` / go after this lock = thin supervisor, not another hall.
 
 Details: `composer-scores.md` § Fugue isolation, `spawn-chair.md`, `tacet-guard.md`, `audition-chair.md`, `garden-score.md`, `snare-score.md`.
