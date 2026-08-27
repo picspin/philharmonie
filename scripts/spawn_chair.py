@@ -188,6 +188,99 @@ def plan(env_obj: Dict[str, Any], *, query: Optional[str], section_override: Opt
     return argv, child_env, hall.name, cap, timeout_sec
 
 
+TICKET_KEYS = {
+    "run_id",
+    "issued_by",
+    "expires_at",
+    "attempt",
+    "hall",
+    "section",
+    "timeout_sec",
+}
+
+
+def load_ticket(path: str) -> Dict[str, Any]:
+    try:
+        raw = json.loads(Path(path).read_text(encoding="utf-8"))
+    except OSError as exc:
+        raise SpawnError(f"cannot read ticket: {exc}") from exc
+    except json.JSONDecodeError as exc:
+        raise SpawnError(f"invalid ticket json: {exc}") from exc
+    if not isinstance(raw, dict):
+        raise SpawnError("ticket must be a JSON object")
+    extra = set(raw) - TICKET_KEYS
+    if extra:
+        raise SpawnError(f"unknown ticket keys: {sorted(extra)}")
+    run_id = str(raw.get("run_id") or "").strip()
+    if not run_id:
+        raise SpawnError("ticket.run_id is required")
+    if raw.get("issued_by") != "conductor":
+        raise SpawnError("ticket.issued_by must be conductor")
+    exp_raw = raw.get("expires_at")
+    if not isinstance(exp_raw, str) or not exp_raw.strip():
+        raise SpawnError("ticket.expires_at is required")
+    try:
+        expires = datetime.fromisoformat(exp_raw)
+    except ValueError as exc:
+        raise SpawnError("ticket.expires_at must be ISO-8601") from exc
+    if expires.tzinfo is None:
+        raise SpawnError("ticket.expires_at must be timezone-aware")
+    if expires <= datetime.now(timezone.utc):
+        raise SpawnError("ticket expired")
+    attempt = 1
+    if "attempt" in raw and raw["attempt"] is not None:
+        try:
+            attempt = int(raw["attempt"])
+        except (TypeError, ValueError) as exc:
+            raise SpawnError("ticket.attempt must be an integer") from exc
+        if attempt < 1:
+            raise SpawnError("ticket.attempt must be >= 1")
+    timeout_sec: Optional[int] = None
+    if "timeout_sec" in raw and raw["timeout_sec"] is not None:
+        try:
+            timeout_sec = int(raw["timeout_sec"])
+        except (TypeError, ValueError) as exc:
+            raise SpawnError("ticket.timeout_sec must be an integer") from exc
+        if timeout_sec <= 0:
+            raise SpawnError("ticket.timeout_sec must be > 0")
+    hall = raw.get("hall")
+    section = raw.get("section")
+    if hall is not None:
+        hall = str(hall)
+    if section is not None:
+        section = str(section)
+    return {
+        "run_id": run_id,
+        "issued_by": "conductor",
+        "expires_at": exp_raw,
+        "attempt": attempt,
+        "hall": hall,
+        "section": section,
+        "timeout_sec": timeout_sec,
+    }
+
+
+def apply_ticket(
+    ticket: Dict[str, Any],
+    *,
+    hall: str,
+    section: str,
+    timeout_sec: Optional[int],
+) -> Optional[int]:
+    if ticket.get("hall") and ticket["hall"] != hall:
+        raise SpawnError(f"ticket.hall is {ticket['hall']!r}, spawn hall is {hall!r}")
+    if ticket.get("section") and ticket["section"] != section:
+        raise SpawnError(
+            f"ticket.section is {ticket['section']!r}, spawn section is {section!r}"
+        )
+    cap = ticket.get("timeout_sec")
+    if cap is None:
+        return timeout_sec
+    if timeout_sec is not None and timeout_sec > cap:
+        raise SpawnError(f"budget.timeout_sec {timeout_sec} exceeds ticket.timeout_sec {cap}")
+    return timeout_sec if timeout_sec is not None else cap
+
+
 def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
     p = argparse.ArgumentParser(description="Spawn a Mada Symphony chair from an envelope")
     p.add_argument("--envelope", help="Path to envelope JSON (default: stdin)")
@@ -202,6 +295,7 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
         help="Wait the child; honor budget.timeout_sec; print result envelope",
     )
     p.add_argument("--jsonl", help="Append spawn/exit JSONL events (requires --supervise)")
+    p.add_argument("--ticket", help="Conductor run ticket JSON (run_id, issued_by, expires_at)")
     p.add_argument(
         "--hall",
         help=f"Runtime adapter: {'|'.join(HALLS)} (default hermes / MADA_HALL)",
@@ -250,11 +344,19 @@ def supervise(
     audition: str,
     timeout_sec: Optional[int],
     jsonl_path: Optional[str],
+    run_id: Optional[str] = None,
+    attempt: Optional[int] = None,
 ) -> int:
     started = _now()
     _append_jsonl(
         jsonl_path,
-        {"event": "spawn", "ts": started, "hall": hall, "timeout_sec": timeout_sec},
+        {
+            "event": "spawn",
+            "ts": started,
+            "hall": hall,
+            "timeout_sec": timeout_sec,
+            "run_id": run_id,
+        },
     )
     try:
         proc = subprocess.Popen(
@@ -293,6 +395,8 @@ def supervise(
         "audition": audition,
         "capabilities": cap,
         "timeout_sec": timeout_sec,
+        "run_id": run_id,
+        "attempt": attempt,
         "started_at": started,
         "ended_at": ended,
         "stdout": (out_b or b"").decode("utf-8", "replace"),
@@ -306,6 +410,7 @@ def supervise(
             "status": status,
             "exit_code": exit_code,
             "exit_reason": reason,
+            "run_id": run_id,
         },
     )
     sys.stdout.write(json.dumps(result, ensure_ascii=False) + "\n")
@@ -321,7 +426,10 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     if args.jsonl and not args.supervise:
         die("--jsonl requires --supervise")
         return 2
+    ticket: Optional[Dict[str, Any]] = None
     try:
+        if args.ticket:
+            ticket = load_ticket(args.ticket)
         envelope = load_envelope(args.envelope)
         gate = audition_or_die(
             effective_envelope(envelope, args.section),
@@ -334,27 +442,40 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             brass_cue=bool(args.brass_cue),
             hall_name=args.hall,
         )
+        if ticket:
+            timeout_sec = apply_ticket(
+                ticket,
+                hall=hall,
+                section=child_env["MADA_SECTION"],
+                timeout_sec=timeout_sec,
+            )
+            child_env["MADA_RUN_ID"] = ticket["run_id"]
     except SpawnError as exc:
         die(exc.message)
         return 2
 
+    run_id = ticket["run_id"] if ticket else None
+    attempt = ticket["attempt"] if ticket else None
+
     if args.dry_run:
-        sys.stdout.write(
-            json.dumps(
-                {
-                    "ok": True,
-                    "hall": hall,
-                    "argv": cmd,
-                    "env": child_env,
-                    "audition": gate,
-                    "capabilities": cap,
-                    "timeout_sec": timeout_sec,
-                    "supervise": bool(args.supervise),
-                },
-                ensure_ascii=False,
-            )
-            + "\n"
-        )
+        body: Dict[str, Any] = {
+            "ok": True,
+            "hall": hall,
+            "argv": cmd,
+            "env": child_env,
+            "audition": gate,
+            "capabilities": cap,
+            "timeout_sec": timeout_sec,
+            "supervise": bool(args.supervise),
+            "run_id": run_id,
+            "attempt": attempt,
+        }
+        if ticket:
+            body["ticket"] = {
+                "issued_by": ticket["issued_by"],
+                "expires_at": ticket["expires_at"],
+            }
+        sys.stdout.write(json.dumps(body, ensure_ascii=False) + "\n")
         return 0
 
     merged = os.environ.copy()
@@ -370,6 +491,8 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         audition=gate,
         timeout_sec=timeout_sec,
         jsonl_path=args.jsonl,
+        run_id=run_id,
+        attempt=attempt,
     )
 
 

@@ -465,6 +465,125 @@ run "dry-run timeout_sec" ok \
   python3 "$SPAWN" --dry-run --envelope "$WORKDIR/to.json" -q "impl brief"
 check "dry-run timeout_sec=1" has_key timeout_sec 1
 
+ticket_json() {
+  cat > "$1"
+}
+
+ticket_json "$WORKDIR/ok.ticket" <<'JSON'
+{
+  "run_id": "run-001",
+  "issued_by": "conductor",
+  "expires_at": "2099-01-01T00:00:00+00:00",
+  "attempt": 1,
+  "hall": "hermes",
+  "section": "violin_1"
+}
+JSON
+
+# 27. valid ticket dry-run
+run "ticket dry-run" ok \
+  python3 "$SPAWN" --dry-run --ticket "$WORKDIR/ok.ticket" --envelope "$WORKDIR/v1.json" -q "impl brief"
+check "ticket run_id" has_key run_id run-001
+check "ticket env MADA_RUN_ID" has env MADA_RUN_ID run-001
+
+# 28. missing ticket file
+run "ticket missing file" err \
+  python3 "$SPAWN" --dry-run --ticket "$WORKDIR/no-such.ticket" --envelope "$WORKDIR/v1.json" -q "impl brief"
+
+# 29. expired
+ticket_json "$WORKDIR/old.ticket" <<'JSON'
+{
+  "run_id": "run-old",
+  "issued_by": "conductor",
+  "expires_at": "2000-01-01T00:00:00+00:00"
+}
+JSON
+run "ticket expired" err \
+  python3 "$SPAWN" --dry-run --ticket "$WORKDIR/old.ticket" --envelope "$WORKDIR/v1.json" -q "impl brief"
+
+# 30. issued_by not conductor
+ticket_json "$WORKDIR/oboe.ticket" <<'JSON'
+{
+  "run_id": "run-oboe",
+  "issued_by": "oboe",
+  "expires_at": "2099-01-01T00:00:00+00:00"
+}
+JSON
+run "ticket not conductor" err \
+  python3 "$SPAWN" --dry-run --ticket "$WORKDIR/oboe.ticket" --envelope "$WORKDIR/v1.json" -q "impl brief"
+
+# 31. hall mismatch
+ticket_json "$WORKDIR/claude.ticket" <<'JSON'
+{
+  "run_id": "run-claude",
+  "issued_by": "conductor",
+  "expires_at": "2099-01-01T00:00:00+00:00",
+  "hall": "claude"
+}
+JSON
+run "ticket hall mismatch" err \
+  python3 "$SPAWN" --dry-run --ticket "$WORKDIR/claude.ticket" --envelope "$WORKDIR/v1.json" -q "impl brief"
+
+# 32. section mismatch
+ticket_json "$WORKDIR/v2.ticket" <<'JSON'
+{
+  "run_id": "run-v2",
+  "issued_by": "conductor",
+  "expires_at": "2099-01-01T00:00:00+00:00",
+  "section": "violin_2"
+}
+JSON
+run "ticket section mismatch" err \
+  python3 "$SPAWN" --dry-run --ticket "$WORKDIR/v2.ticket" --envelope "$WORKDIR/v1.json" -q "impl brief"
+
+# 33. timeout cap: envelope 5 vs ticket 1 → refuse
+env_json "$WORKDIR/wide.json" <<'JSON'
+{
+  "protocol": "Mada-A2A/1.0",
+  "message_type": "POINT_TO_POINT_HANDOVER",
+  "movement": "II. Variation",
+  "sender": {"section": "violin_1", "agent_id": "v1", "model": "grok-4.6"},
+  "cue": "SPEC_LOCKED",
+  "ground_bass_ref": "SPEC.md#v1",
+  "isolation": "worktree",
+  "allowed_toolsets": ["terminal", "file"],
+  "budget": {"dynamic_mark": "mf", "timeout_sec": 5},
+  "payload": {"summary": "impl"}
+}
+JSON
+ticket_json "$WORKDIR/cap.ticket" <<'JSON'
+{
+  "run_id": "run-cap",
+  "issued_by": "conductor",
+  "expires_at": "2099-01-01T00:00:00+00:00",
+  "timeout_sec": 1
+}
+JSON
+run "ticket timeout cap" err \
+  python3 "$SPAWN" --dry-run --ticket "$WORKDIR/cap.ticket" --envelope "$WORKDIR/wide.json" -q "impl brief"
+
+# 34. --force does not skip expired ticket
+run "force still checks ticket" err \
+  python3 "$SPAWN" --dry-run --force --ticket "$WORKDIR/old.ticket" --envelope "$WORKDIR/v1.json" -q "impl brief"
+
+# 35. --supervise echoes run_id
+run "supervise ticket run_id" ok \
+  env MADA_HERMES=/bin/true \
+  python3 "$SPAWN" --supervise --force --ticket "$WORKDIR/ok.ticket" --envelope "$WORKDIR/v1.json" -q "impl brief"
+check "supervise run_id" has_key run_id run-001
+
+# 36. extra key refuse
+ticket_json "$WORKDIR/extra.ticket" <<'JSON'
+{
+  "run_id": "run-x",
+  "issued_by": "conductor",
+  "expires_at": "2099-01-01T00:00:00+00:00",
+  "signature": "nope"
+}
+JSON
+run "ticket extra key" err \
+  python3 "$SPAWN" --dry-run --ticket "$WORKDIR/extra.ticket" --envelope "$WORKDIR/v1.json" -q "impl brief"
+
 echo
 if [[ "$fail" -eq 0 ]]; then
   echo "ALL $n PASSED"
