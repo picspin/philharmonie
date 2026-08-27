@@ -25,7 +25,7 @@ Mechanized — do not rebuild:
 | Latch | Artifact | Contract |
 |-------|----------|----------|
 | Katalog | `SKILL.md` ≤140 | chairs / Tacet / 0-token stay on the page |
-| Spawn | `scripts/spawn_chair.py` | `test_spawn_chair.sh` 41. Default audition; `--force` skips. `--hall` / `MADA_HALL`. |
+| Spawn | `scripts/spawn_chair.py` | `test_spawn_chair.sh` 56. Default audition; `--force` skips; `--supervise` waits. `--hall` / `MADA_HALL`. |
 | Halls | `scripts/halls.py` | `test_halls.sh`. Adapters plug in; chairs do not auto-admit. |
 | Tacet | `scripts/tacet-guard.sh` | `test_tacet_guard.sh` 16. Opt-in `pre_tool_call`. Unset `MADA_SECTION` = fail-open. |
 | Audition | `scripts/audition_chair.py` | `test_audition_chair.sh` 36. `admit` always false. |
@@ -43,14 +43,14 @@ Same-hall capability declaration is allowed. Tacet ≠ sandbox.
 
 | Item | Status |
 |------|--------|
-| Hall capability ∩ fail-closed | this wave |
-| Thin supervisor (`timeout_sec`, result envelope, JSONL) | next |
-| Run ticket / admission | not yet |
+| Hall capability ∩ fail-closed | landed |
+| Thin supervisor (`timeout_sec`, result envelope, JSONL) | this wave |
+| Run ticket / admission | next |
 | Ground bass OS/Git readonly | not yet |
 | Delete costume schema fields (protocol bus, sidechain, agent_id) | not yet |
 | Diminuendo | Convention. Hermes compressor stays threshold/target. |
 | `/restart` | Human only. `MADA_SECTION` unset here = fail-open by design. |
 
-Next `继续` / `下一票` / go after this lock = thin supervisor, not another hall.
+Next `继续` / `下一票` / go after this lock = Run ticket / admission, not another hall.
 
 Details: `composer-scores.md` § Fugue isolation, `spawn-chair.md`, `tacet-guard.md`, `audition-chair.md`, `garden-score.md`, `snare-score.md`.

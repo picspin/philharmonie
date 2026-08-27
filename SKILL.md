@@ -22,7 +22,7 @@ Token economy + structural correctness: peak expression with minimal sounding bo
 | `references/garden-score.md` | Katalog freshness latch. 0-token. |
 | `references/snare-score.md` | Target-repo `AGENTS.md` 4-rung latch. |
 | `scripts/tacet-guard.sh` | Child-process latch. `scripts/test_tacet_guard.sh` = 16 |
-| `scripts/spawn_chair.py` | Spawn. Default audition; `--force` skips. `scripts/test_spawn_chair.sh` = 41 |
+| `scripts/spawn_chair.py` | Spawn. Default audition; `--force` skips. `scripts/test_spawn_chair.sh` = 56 |
 | `references/halls.md` | `--hall` / `MADA_HALL`. `scripts/halls.py` + `scripts/test_halls.sh` |
 | `scripts/audition_chair.py` | Audition. `scripts/test_audition_chair.sh` = 36 |
 | `scripts/garden_score.py` | Doc-garden. `scripts/test_garden_score.sh` |
@@ -105,6 +105,7 @@ Schema: `templates/envelope.json`. Spawn reader: `scripts/spawn_chair.py`. Audit
 | `isolation` | `worktree` (writers) vs `shared` (review / Snare). Hall without worktree → refuse |
 | `allowed_toolsets` | Heteronomous Tacet → spawn tool gate. Empty = mute |
 | `tacet_paths` | Ground-bass paths this chair must not write |
+| `budget.timeout_sec` | `--supervise` wall clock. Default execvpe ignores it |
 
 `sender.section` is an **interface**. `audition_chair.py` pass = may try; `admit` is always false. Routing / quota / Brass stay with the conductor. Auto-admit plugins are refused.
 

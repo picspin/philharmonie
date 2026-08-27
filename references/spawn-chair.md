@@ -1,6 +1,6 @@
 # Spawn chair (envelope → argv + env)
 
-Script: `scripts/spawn_chair.py`. Contract: `scripts/test_spawn_chair.sh` (41 cases).
+Script: `scripts/spawn_chair.py`. Contract: `scripts/test_spawn_chair.sh` (56 cases).
 
 This is the conductor's **first latch**. Isolation fields on the envelope become hall argv + `MADA_*` exports. Default hall is Hermes. `--hall` / `MADA_HALL` selects `claude` / `codex` / `pi`. The JSON is not read by the child — only by this wrapper.
 
@@ -22,6 +22,7 @@ Every spawn fixture now needs Mahler `budget.dynamic_mark`. Wiring audition as t
 | `sender.model` | Hermes `-m` + `--provider`; Claude `--model`; Codex `-m`; **Pi refuse (cannot pin)** |
 | `--brass-cue` | `MADA_BRASS_CUE=1` |
 | `--hall` / `MADA_HALL` | adapter (`hermes` default). Capabilities in dry-run JSON |
+| `budget.timeout_sec` | `--supervise` wall clock. Default `execvpe` ignores it. `<=0` refuses |
 
 Hermes always `--yolo`. Query = `-q` or `payload.summary`. Other halls: see `halls.md`.
 
@@ -46,24 +47,30 @@ Schema-valid ≠ in the pool. Wrapper does **not** check 429 / sol quota.
 - hall cannot enforce `isolation=worktree`
 - hall cannot pin `sender.model`
 - hall cannot enforce `allowed_toolsets` (unless `pre_tool_hook=external`)
+- `budget.timeout_sec` present and `<= 0`
+- `--jsonl` without `--supervise`
 
 ## Usage
 
 ```bash
-# dry-run (prints argv + env + audition JSON)
+# dry-run (prints argv + env + audition JSON + timeout_sec)
 python3 scripts/spawn_chair.py --dry-run --envelope chair.json -q "<brief>"
 
 # skip audition (spawn latches still apply)
 python3 scripts/spawn_chair.py --dry-run --force --envelope chair.json -q "<brief>"
 
-# exec (replaces this process)
+# exec (replaces this process; timeout_sec is costume)
 python3 scripts/spawn_chair.py --envelope chair.json -q "<brief>"
+
+# supervise (waits; honors timeout_sec; result envelope on stdout)
+python3 scripts/spawn_chair.py --supervise --envelope chair.json -q "<brief>"
+python3 scripts/spawn_chair.py --supervise --jsonl run.jsonl --envelope chair.json -q "<brief>"
 
 # stdin
 python3 scripts/spawn_chair.py --dry-run -q "<brief>" < chair.json
 ```
 
-Hall binary pins: `MADA_HERMES` / `MADA_CLAUDE` / `MADA_CODEX` / `MADA_PI` (see `halls.md`). Non-`--dry-run` is `os.execvpe` — it **replaces** this process. Run it as a child, never in the conductor's own PID.
+Hall binary pins: `MADA_HERMES` / `MADA_CLAUDE` / `MADA_CODEX` / `MADA_PI` (see `halls.md`). Default non-`--dry-run` is `os.execvpe` — it **replaces** this process. `--supervise` waits, kills the process group on wall timeout (exit 124), and prints a result envelope (`status` / `exit_reason` / `exit_code`). `--jsonl` appends `spawn` then `exit`. Run execvpe as a child, never in the conductor's own PID.
 
 ## Pair with tacet-guard
 
@@ -73,5 +80,5 @@ Wrapper is latch 1 (`-t` + env). `tacet-guard.sh` is latch 2 on the **child** `p
 
 ```bash
 bash scripts/test_spawn_chair.sh
-# expect: ALL 41 PASSED
+# expect: ALL 56 PASSED
 ```
