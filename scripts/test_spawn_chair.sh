@@ -100,13 +100,10 @@ fi
 # 2. worktree + toolsets + env
 env_json "$WORKDIR/v1.json" <<'JSON'
 {
-  "protocol": "Mada-A2A/1.0",
-  "message_type": "POINT_TO_POINT_HANDOVER",
   "movement": "II. Variation",
-  "sender": {"section": "violin_1", "agent_id": "v1", "model": "grok-4.6"},
+  "sender": {"section": "violin_1", "model": "grok-4.6"},
   "cue": "SPEC_LOCKED",
   "ground_bass_ref": "SPEC.md#v1",
-  "sidechain": true,
   "isolation": "worktree",
   "allowed_toolsets": ["terminal", "file"],
   "tacet_paths": ["tests/test_locked_kernel.py"],
@@ -138,13 +135,10 @@ check "no MADA_BRASS_CUE" has_env_absent
 # 3. shared isolation → no -w
 env_json "$WORKDIR/v2.json" <<'JSON'
 {
-  "protocol": "Mada-A2A/1.0",
-  "message_type": "POINT_TO_POINT_HANDOVER",
   "movement": "III. Counterpoint",
-  "sender": {"section": "violin_2", "agent_id": "v2", "model": "gemini-3.7-flash-high"},
+  "sender": {"section": "violin_2", "model": "gemini-3.7-flash-high"},
   "cue": "PATCH_READY",
   "ground_bass_ref": "SPEC.md#v1",
-  "sidechain": true,
   "isolation": "shared",
   "allowed_toolsets": ["terminal", "file"],
   "budget": {"dynamic_mark": "mp"},
@@ -159,10 +153,8 @@ check "gemini still cliproxy" has flag --provider cliproxy
 # 4. empty toolsets = mute = refuse
 env_json "$WORKDIR/mute.json" <<'JSON'
 {
-  "protocol": "Mada-A2A/1.0",
-  "message_type": "TACET_DIRECTIVE",
   "movement": "IV. Tutti",
-  "sender": {"section": "oboe", "agent_id": "ob", "model": "mga-glm-5"},
+  "sender": {"section": "oboe", "model": "mga-glm-5"},
   "cue": "TACET",
   "ground_bass_ref": "SPEC.md#v1",
   "isolation": "shared",
@@ -177,10 +169,8 @@ run "empty allowed_toolsets refuse" err \
 # 5. missing allowed_toolsets refuse
 env_json "$WORKDIR/missing-t.json" <<'JSON'
 {
-  "protocol": "Mada-A2A/1.0",
-  "message_type": "POINT_TO_POINT_HANDOVER",
   "movement": "II. Variation",
-  "sender": {"section": "horn", "agent_id": "h", "model": "grok-4.6"},
+  "sender": {"section": "horn", "model": "grok-4.6"},
   "cue": "GO",
   "ground_bass_ref": "SPEC.md#v1",
   "isolation": "worktree",
@@ -194,10 +184,8 @@ run "missing allowed_toolsets refuse" err \
 # 6. brass without cue refuse
 env_json "$WORKDIR/brass.json" <<'JSON'
 {
-  "protocol": "Mada-A2A/1.0",
-  "message_type": "POINT_TO_POINT_HANDOVER",
   "movement": "II. Variation",
-  "sender": {"section": "horn", "agent_id": "h", "model": "gpt-5.6-sol"},
+  "sender": {"section": "horn", "model": "gpt-5.6-sol"},
   "cue": "GO",
   "ground_bass_ref": "SPEC.md#v1",
   "isolation": "worktree",
@@ -218,10 +206,8 @@ check "section override conductor" has env MADA_SECTION conductor
 # 8. heavy_brass may use sol
 env_json "$WORKDIR/hb.json" <<'JSON'
 {
-  "protocol": "Mada-A2A/1.0",
-  "message_type": "POINT_TO_POINT_HANDOVER",
   "movement": "climax",
-  "sender": {"section": "heavy_brass", "agent_id": "br", "model": "gpt-5.6-sol"},
+  "sender": {"section": "heavy_brass", "model": "gpt-5.6-sol"},
   "cue": "TUTTI",
   "ground_bass_ref": "SPEC.md#v1",
   "isolation": "shared",
@@ -236,10 +222,8 @@ run "heavy_brass sol ok" ok \
 # 9. litellm prefix
 env_json "$WORKDIR/luna.json" <<'JSON'
 {
-  "protocol": "Mada-A2A/1.0",
-  "message_type": "POINT_TO_POINT_HANDOVER",
   "movement": "III. Counterpoint",
-  "sender": {"section": "violin_2", "agent_id": "v2", "model": "code1-gpt-5.6-luna"},
+  "sender": {"section": "violin_2", "model": "code1-gpt-5.6-luna"},
   "cue": "REVIEW",
   "ground_bass_ref": "SPEC.md#v1",
   "isolation": "shared",
@@ -255,10 +239,8 @@ check "provider litellm-gateway" has flag --provider litellm-gateway
 # 10. alias omits --provider
 env_json "$WORKDIR/ox.json" <<'JSON'
 {
-  "protocol": "Mada-A2A/1.0",
-  "message_type": "POINT_TO_POINT_HANDOVER",
   "movement": "V. Finale",
-  "sender": {"section": "harp", "agent_id": "hp", "model": "ox-alpha"},
+  "sender": {"section": "harp", "model": "ox-alpha"},
   "cue": "CAPTION",
   "ground_bass_ref": "SPEC.md#v1",
   "isolation": "shared",
@@ -280,10 +262,8 @@ run "invalid json refuse" err \
 # 12. unknown section
 env_json "$WORKDIR/badsec.json" <<'JSON'
 {
-  "protocol": "Mada-A2A/1.0",
-  "message_type": "POINT_TO_POINT_HANDOVER",
   "movement": "x",
-  "sender": {"section": "kazoo", "agent_id": "k", "model": "grok-4.6"},
+  "sender": {"section": "kazoo", "model": "grok-4.6"},
   "cue": "x",
   "ground_bass_ref": "SPEC.md",
   "isolation": "shared",
@@ -317,10 +297,8 @@ check "default audition=pass" has_audition pass
 # 15. missing budget fails audition
 env_json "$WORKDIR/nobudget.json" <<'JSON'
 {
-  "protocol": "Mada-A2A/1.0",
-  "message_type": "POINT_TO_POINT_HANDOVER",
   "movement": "II. Variation",
-  "sender": {"section": "violin_1", "agent_id": "v1", "model": "grok-4.6"},
+  "sender": {"section": "violin_1", "model": "grok-4.6"},
   "cue": "SPEC_LOCKED",
   "ground_bass_ref": "SPEC.md#v1",
   "isolation": "worktree",
@@ -344,10 +322,8 @@ run "force still refuses empty toolsets" err \
 # 18. flute overflow blocked without --force
 env_json "$WORKDIR/flute.json" <<'JSON'
 {
-  "protocol": "Mada-A2A/1.0",
-  "message_type": "POINT_TO_POINT_HANDOVER",
   "movement": "probe",
-  "sender": {"section": "flute", "agent_id": "fl", "model": "mimo-v2.5"},
+  "sender": {"section": "flute", "model": "mimo-v2.5"},
   "cue": "PROBE",
   "ground_bass_ref": "SPEC.md#v1",
   "isolation": "shared",
@@ -401,10 +377,8 @@ SH
 chmod +x "$WORKDIR/sleep.sh"
 env_json "$WORKDIR/to.json" <<'JSON'
 {
-  "protocol": "Mada-A2A/1.0",
-  "message_type": "POINT_TO_POINT_HANDOVER",
   "movement": "II. Variation",
-  "sender": {"section": "violin_1", "agent_id": "v1", "model": "grok-4.6"},
+  "sender": {"section": "violin_1", "model": "grok-4.6"},
   "cue": "SPEC_LOCKED",
   "ground_bass_ref": "SPEC.md#v1",
   "isolation": "worktree",
@@ -445,10 +419,8 @@ fi
 # 25. timeout_sec=0 refuse at plan
 env_json "$WORKDIR/zero.json" <<'JSON'
 {
-  "protocol": "Mada-A2A/1.0",
-  "message_type": "POINT_TO_POINT_HANDOVER",
   "movement": "II. Variation",
-  "sender": {"section": "violin_1", "agent_id": "v1", "model": "grok-4.6"},
+  "sender": {"section": "violin_1", "model": "grok-4.6"},
   "cue": "SPEC_LOCKED",
   "ground_bass_ref": "SPEC.md#v1",
   "isolation": "worktree",
@@ -539,10 +511,8 @@ run "ticket section mismatch" err \
 # 33. timeout cap: envelope 5 vs ticket 1 → refuse
 env_json "$WORKDIR/wide.json" <<'JSON'
 {
-  "protocol": "Mada-A2A/1.0",
-  "message_type": "POINT_TO_POINT_HANDOVER",
   "movement": "II. Variation",
-  "sender": {"section": "violin_1", "agent_id": "v1", "model": "grok-4.6"},
+  "sender": {"section": "violin_1", "model": "grok-4.6"},
   "cue": "SPEC_LOCKED",
   "ground_bass_ref": "SPEC.md#v1",
   "isolation": "worktree",

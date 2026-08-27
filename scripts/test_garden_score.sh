@@ -151,6 +151,18 @@ rm -f "$WORKDIR/notest/scripts/test_spawn_chair.sh"
 run "missing contract test fail" err python3 "$GARDEN" --root "$WORKDIR/notest"
 check "mentions test_spawn_chair" has_reason "test_spawn_chair.sh"
 
+clone_tree "$WORKDIR/addprop"
+python3 - "$WORKDIR/addprop/templates/envelope.json" <<'PY'
+import json, sys
+from pathlib import Path
+p = Path(sys.argv[1])
+data = json.loads(p.read_text(encoding="utf-8"))
+data["additionalProperties"] = True
+p.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
+PY
+run "additionalProperties true fail" err python3 "$GARDEN" --root "$WORKDIR/addprop"
+check "mentions additionalProperties" has_reason "additionalProperties"
+
 echo
 if [[ "$fail" -eq 0 ]]; then
   echo "ALL $n PASSED"

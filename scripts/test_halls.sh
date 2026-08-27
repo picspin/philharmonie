@@ -155,13 +155,10 @@ fi
 
 cat > "$WORKDIR/v1.json" <<'JSON'
 {
-  "protocol": "Mada-A2A/1.0",
-  "message_type": "POINT_TO_POINT_HANDOVER",
   "movement": "II. Variation",
-  "sender": {"section": "violin_1", "agent_id": "v1", "model": "grok-4.6"},
+  "sender": {"section": "violin_1", "model": "grok-4.6"},
   "cue": "SPEC_LOCKED",
   "ground_bass_ref": "SPEC.md#v1",
-  "sidechain": true,
   "isolation": "worktree",
   "allowed_toolsets": ["terminal", "file"],
   "tacet_paths": ["tests/test_locked_kernel.py"],
@@ -172,13 +169,10 @@ JSON
 
 cat > "$WORKDIR/v2.json" <<'JSON'
 {
-  "protocol": "Mada-A2A/1.0",
-  "message_type": "POINT_TO_POINT_HANDOVER",
   "movement": "III. Counterpoint",
-  "sender": {"section": "violin_2", "agent_id": "v2", "model": "gemini-3.7-flash-high"},
+  "sender": {"section": "violin_2", "model": "gemini-3.7-flash-high"},
   "cue": "PATCH_READY",
   "ground_bass_ref": "SPEC.md#v1",
-  "sidechain": true,
   "isolation": "shared",
   "allowed_toolsets": ["terminal", "file"],
   "budget": {"dynamic_mark": "mp"},
@@ -188,10 +182,8 @@ JSON
 
 cat > "$WORKDIR/mute.json" <<'JSON'
 {
-  "protocol": "Mada-A2A/1.0",
-  "message_type": "TACET_DIRECTIVE",
   "movement": "IV. Tutti",
-  "sender": {"section": "oboe", "agent_id": "ob", "model": "mga-glm-5"},
+  "sender": {"section": "oboe", "model": "mga-glm-5"},
   "cue": "TACET",
   "ground_bass_ref": "SPEC.md#v1",
   "isolation": "shared",
@@ -203,10 +195,8 @@ JSON
 
 cat > "$WORKDIR/brass.json" <<'JSON'
 {
-  "protocol": "Mada-A2A/1.0",
-  "message_type": "POINT_TO_POINT_HANDOVER",
   "movement": "II. Variation",
-  "sender": {"section": "horn", "agent_id": "h", "model": "gpt-5.6-sol"},
+  "sender": {"section": "horn", "model": "gpt-5.6-sol"},
   "cue": "GO",
   "ground_bass_ref": "SPEC.md#v1",
   "isolation": "worktree",

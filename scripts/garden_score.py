@@ -5,7 +5,7 @@ Checks (no LLM):
   1. Every `references|scripts|templates/...` path in SKILL.md exists.
   2. Every file in those dirs is named in SKILL.md (no orphan parts).
   3. SKILL.md ≤ 140 lines.
-  4. envelope.json has no compaction_tier / protocol / message_type / sidechain / agent_id (refused costume).
+  4. envelope.json has no compaction_tier / protocol / message_type / sidechain / agent_id (refused costume). Root additionalProperties is false.
   5. sender.section enum == section-contract ceilings == spawn/audition SECTIONS.
   6. Each non-test script has a sibling test_*.sh.
 
@@ -107,6 +107,8 @@ def garden(root: Path) -> List[str]:
             envelope = None
         else:
             props = envelope.get("properties") if isinstance(envelope, dict) else None
+            if isinstance(envelope, dict) and envelope.get("additionalProperties") is not False:
+                errors.append("additionalProperties must be false in templates/envelope.json")
             if isinstance(props, dict):
                 for key in ("protocol", "message_type", "sidechain"):
                     if key in props:

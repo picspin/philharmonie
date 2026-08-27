@@ -3,6 +3,7 @@
   "title": "MadaSymphonyMessage",
   "description": "Envelope for Mada Symphony spawn. Isolation fields drive spawn; they are not costume. protocol / message_type / sidechain / agent_id are refused.",
   "type": "object",
+  "additionalProperties": false,
   "required": ["movement", "sender", "cue", "ground_bass_ref", "payload"],
   "properties": {
     "movement": {
@@ -11,6 +12,7 @@
     },
     "sender": {
       "type": "object",
+      "additionalProperties": false,
       "required": ["section", "model"],
       "properties": {
         "section": {
@@ -22,6 +24,7 @@
     },
     "recipient": {
       "type": "object",
+      "additionalProperties": false,
       "properties": {
         "section": { "type": "string" }
       }
@@ -52,6 +55,7 @@
     },
     "budget": {
       "type": "object",
+      "additionalProperties": false,
       "properties": {
         "dynamic_mark": { "type": "string", "enum": ["ppp", "pp", "p", "mp", "mf", "f", "ff", "ffff"] },
         "max_tokens": { "type": "integer" },
@@ -60,6 +64,7 @@
     },
     "payload": {
       "type": "object",
+      "additionalProperties": false,
       "description": "Concrete deliverable or event payload",
       "properties": {
         "summary": { "type": "string" },

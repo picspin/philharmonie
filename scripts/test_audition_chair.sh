@@ -84,13 +84,10 @@ fi
 
 env_json "$WORKDIR/v1.json" <<'JSON'
 {
-  "protocol": "Mada-A2A/1.0",
-  "message_type": "POINT_TO_POINT_HANDOVER",
   "movement": "II. Variation",
-  "sender": {"section": "violin_1", "agent_id": "v1", "model": "grok-4.6"},
+  "sender": {"section": "violin_1", "model": "grok-4.6"},
   "cue": "SPEC_LOCKED",
   "ground_bass_ref": "SPEC.md#v1",
-  "sidechain": true,
   "isolation": "worktree",
   "allowed_toolsets": ["terminal", "file"],
   "tacet_paths": ["tests/test_locked_kernel.py"],
@@ -104,13 +101,10 @@ check "not tacet" field tacet false
 
 env_json "$WORKDIR/v2.json" <<'JSON'
 {
-  "protocol": "Mada-A2A/1.0",
-  "message_type": "POINT_TO_POINT_HANDOVER",
   "movement": "III. Counterpoint",
-  "sender": {"section": "violin_2", "agent_id": "v2", "model": "gemini-3.7-flash-high"},
+  "sender": {"section": "violin_2", "model": "gemini-3.7-flash-high"},
   "cue": "PATCH_READY",
   "ground_bass_ref": "SPEC.md#v1",
-  "sidechain": true,
   "isolation": "shared",
   "allowed_toolsets": ["terminal", "file"],
   "budget": {"dynamic_mark": "mp"},
@@ -121,10 +115,8 @@ run "violin_2 shared pass" pass python3 "$AUD" --envelope "$WORKDIR/v2.json"
 
 env_json "$WORKDIR/v2w.json" <<'JSON'
 {
-  "protocol": "Mada-A2A/1.0",
-  "message_type": "POINT_TO_POINT_HANDOVER",
   "movement": "III. Counterpoint",
-  "sender": {"section": "violin_2", "agent_id": "v2", "model": "gemini-3.7-flash-high"},
+  "sender": {"section": "violin_2", "model": "gemini-3.7-flash-high"},
   "cue": "PATCH_READY",
   "ground_bass_ref": "SPEC.md#v1",
   "isolation": "worktree",
@@ -137,10 +129,8 @@ run "violin_2 worktree fail" fail python3 "$AUD" --envelope "$WORKDIR/v2w.json"
 
 env_json "$WORKDIR/flute-term.json" <<'JSON'
 {
-  "protocol": "Mada-A2A/1.0",
-  "message_type": "POINT_TO_POINT_HANDOVER",
   "movement": "I. Overture",
-  "sender": {"section": "flute", "agent_id": "fl", "model": "mimo-v2.5"},
+  "sender": {"section": "flute", "model": "mimo-v2.5"},
   "cue": "PROBE",
   "ground_bass_ref": "SPEC.md#v1",
   "isolation": "shared",
@@ -153,10 +143,8 @@ run "flute overflow terminal fail" fail python3 "$AUD" --envelope "$WORKDIR/flut
 
 env_json "$WORKDIR/mute.json" <<'JSON'
 {
-  "protocol": "Mada-ANP/1.0",
-  "message_type": "TACET_DIRECTIVE",
   "movement": "IV. Tutti",
-  "sender": {"section": "oboe", "agent_id": "ob", "model": "mga-glm-5"},
+  "sender": {"section": "oboe", "model": "mga-glm-5"},
   "cue": "TACET",
   "ground_bass_ref": "SPEC.md#v1",
   "isolation": "shared",
@@ -170,10 +158,8 @@ check "tacet true" field tacet true
 
 env_json "$WORKDIR/missing-t.json" <<'JSON'
 {
-  "protocol": "Mada-A2A/1.0",
-  "message_type": "POINT_TO_POINT_HANDOVER",
   "movement": "II. Variation",
-  "sender": {"section": "horn", "agent_id": "h", "model": "grok-4.6"},
+  "sender": {"section": "horn", "model": "grok-4.6"},
   "cue": "GO",
   "ground_bass_ref": "SPEC.md#v1",
   "isolation": "worktree",
@@ -185,10 +171,8 @@ run "missing allowed_toolsets fail" fail python3 "$AUD" --envelope "$WORKDIR/mis
 
 env_json "$WORKDIR/nocue.json" <<'JSON'
 {
-  "protocol": "Mada-A2A/1.0",
-  "message_type": "POINT_TO_POINT_HANDOVER",
   "movement": "II. Variation",
-  "sender": {"section": "violin_1", "agent_id": "v1", "model": "grok-4.6"},
+  "sender": {"section": "violin_1", "model": "grok-4.6"},
   "ground_bass_ref": "SPEC.md#v1",
   "isolation": "worktree",
   "allowed_toolsets": ["file"],
@@ -200,10 +184,8 @@ run "schema missing cue fail" fail python3 "$AUD" --envelope "$WORKDIR/nocue.jso
 
 env_json "$WORKDIR/kazoo.json" <<'JSON'
 {
-  "protocol": "Mada-A2A/1.0",
-  "message_type": "POINT_TO_POINT_HANDOVER",
   "movement": "x",
-  "sender": {"section": "kazoo", "agent_id": "k", "model": "grok-4.6"},
+  "sender": {"section": "kazoo", "model": "grok-4.6"},
   "cue": "x",
   "ground_bass_ref": "SPEC.md",
   "isolation": "shared",
@@ -219,10 +201,8 @@ run "invalid json fail" fail python3 "$AUD" --envelope "$WORKDIR/bad.json"
 
 env_json "$WORKDIR/horn-sol.json" <<'JSON'
 {
-  "protocol": "Mada-A2A/1.0",
-  "message_type": "POINT_TO_POINT_HANDOVER",
   "movement": "II. Variation",
-  "sender": {"section": "horn", "agent_id": "h", "model": "gpt-5.6-sol"},
+  "sender": {"section": "horn", "model": "gpt-5.6-sol"},
   "cue": "GO",
   "ground_bass_ref": "SPEC.md#v1",
   "isolation": "worktree",
@@ -235,10 +215,8 @@ run "horn + sol fail" fail python3 "$AUD" --envelope "$WORKDIR/horn-sol.json"
 
 env_json "$WORKDIR/hb.json" <<'JSON'
 {
-  "protocol": "Mada-A2A/1.0",
-  "message_type": "POINT_TO_POINT_HANDOVER",
   "movement": "climax",
-  "sender": {"section": "heavy_brass", "agent_id": "br", "model": "gpt-5.6-sol"},
+  "sender": {"section": "heavy_brass", "model": "gpt-5.6-sol"},
   "cue": "TUTTI",
   "ground_bass_ref": "SPEC.md#v1",
   "isolation": "shared",
@@ -251,10 +229,8 @@ run "heavy_brass sol pass still not admit" pass python3 "$AUD" --envelope "$WORK
 
 env_json "$WORKDIR/badts.json" <<'JSON'
 {
-  "protocol": "Mada-A2A/1.0",
-  "message_type": "POINT_TO_POINT_HANDOVER",
   "movement": "V. Finale",
-  "sender": {"section": "harp", "agent_id": "hp", "model": "ox-alpha"},
+  "sender": {"section": "harp", "model": "ox-alpha"},
   "cue": "CAPTION",
   "ground_bass_ref": "SPEC.md#v1",
   "isolation": "shared",
@@ -267,10 +243,8 @@ run "unknown toolset name fail" fail python3 "$AUD" --envelope "$WORKDIR/badts.j
 
 env_json "$WORKDIR/harp.json" <<'JSON'
 {
-  "protocol": "Mada-A2A/1.0",
-  "message_type": "POINT_TO_POINT_HANDOVER",
   "movement": "V. Finale",
-  "sender": {"section": "harp", "agent_id": "hp", "model": "ox-alpha"},
+  "sender": {"section": "harp", "model": "ox-alpha"},
   "cue": "CAPTION",
   "ground_bass_ref": "SPEC.md#v1",
   "isolation": "shared",
@@ -285,10 +259,8 @@ run "stdin envelope pass" pass python3 "$AUD" < "$WORKDIR/v1.json"
 
 env_json "$WORKDIR/nobudget.json" <<'JSON'
 {
-  "protocol": "Mada-A2A/1.0",
-  "message_type": "POINT_TO_POINT_HANDOVER",
   "movement": "II. Variation",
-  "sender": {"section": "violin_1", "agent_id": "v1", "model": "grok-4.6"},
+  "sender": {"section": "violin_1", "model": "grok-4.6"},
   "cue": "SPEC_LOCKED",
   "ground_bass_ref": "SPEC.md#v1",
   "isolation": "worktree",
@@ -300,10 +272,8 @@ run "missing budget fail" fail python3 "$AUD" --envelope "$WORKDIR/nobudget.json
 
 env_json "$WORKDIR/nosum.json" <<'JSON'
 {
-  "protocol": "Mada-A2A/1.0",
-  "message_type": "POINT_TO_POINT_HANDOVER",
   "movement": "II. Variation",
-  "sender": {"section": "violin_1", "agent_id": "v1", "model": "grok-4.6"},
+  "sender": {"section": "violin_1", "model": "grok-4.6"},
   "cue": "SPEC_LOCKED",
   "ground_bass_ref": "SPEC.md#v1",
   "isolation": "worktree",
@@ -327,6 +297,21 @@ env_json "$WORKDIR/bare.json" <<'JSON'
 }
 JSON
 run "bare envelope pass" pass python3 "$AUD" --envelope "$WORKDIR/bare.json"
+
+env_json "$WORKDIR/extra.json" <<'JSON'
+{
+  "protocol": "Mada-A2A/1.0",
+  "movement": "II. Variation",
+  "sender": {"section": "violin_1", "model": "grok-4.6"},
+  "cue": "SPEC_LOCKED",
+  "ground_bass_ref": "SPEC.md#v1",
+  "isolation": "worktree",
+  "allowed_toolsets": ["terminal", "file"],
+  "budget": {"dynamic_mark": "mf"},
+  "payload": {"summary": "impl"}
+}
+JSON
+run "extra protocol fail" fail python3 "$AUD" --envelope "$WORKDIR/extra.json"
 
 echo
 if [[ "$fail" -eq 0 ]]; then
