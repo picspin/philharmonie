@@ -22,7 +22,7 @@ Token economy + structural correctness: peak expression with minimal sounding bo
 | `references/garden-score.md` | Katalog freshness latch. 0-token. |
 | `references/snare-score.md` | Target-repo `AGENTS.md` 4-rung latch. |
 | `scripts/tacet-guard.sh` | Child-process latch. `scripts/test_tacet_guard.sh` = 16 |
-| `scripts/spawn_chair.py` | Spawn. Default audition; `--force` skips. `scripts/test_spawn_chair.sh` = 56 |
+| `scripts/spawn_chair.py` | Spawn. Default audition; `--force` skips. `scripts/test_spawn_chair.sh` = 69 |
 | `references/halls.md` | `--hall` / `MADA_HALL`. `scripts/halls.py` + `scripts/test_halls.sh` |
 | `scripts/audition_chair.py` | Audition. `scripts/test_audition_chair.sh` = 36 |
 | `scripts/garden_score.py` | Doc-garden. `scripts/test_garden_score.sh` |
@@ -121,7 +121,7 @@ ANP = lifecycle bus (`SPEC_LOCKED`, `TEST_PASSED`, `CIRCUIT_BREAK`). A2A = fugue
 
 Spawn 403/429 → in-session TDD + Snare. Do not stall.
 
-Default hall Hermes. `--hall` / `MADA_HALL` = `claude` / `codex` / `pi`. Hall cannot enforce envelope → spawn exit 2.
+Default hall Hermes. `--hall` / `MADA_HALL` = `claude` / `codex` / `pi`. Hall cannot enforce envelope → spawn exit 2. `--ticket` = conductor grant (`run_id`, expiry). Pass ≠ admit. No signature.
 
 ## Pitfalls
 

@@ -49,7 +49,7 @@ cd philharmonie
 bash scripts/test_audition_chair.sh   # 36
 bash scripts/test_garden_score.sh     # 14
 bash scripts/test_snare_score.sh      # 27
-bash scripts/test_spawn_chair.sh      # 56
+bash scripts/test_spawn_chair.sh      # 69
 bash scripts/test_tacet_guard.sh      # 16
 bash scripts/test_halls.sh            # hall adapters
 python3 scripts/garden_score.py       # Katalog ↔ parts
@@ -93,7 +93,7 @@ export MADA_HERMES="$(command -v hermes)"   # or your wrapper
 python3 scripts/spawn_chair.py --envelope examples/violin-1.json
 ```
 
-`spawn_chair.py` without `--dry-run` is `os.execvpe` (process replace; `timeout_sec` is costume). `--supervise` waits, honors `budget.timeout_sec`, and prints a result envelope. Run execvpe as a child, never as the conductor.
+`spawn_chair.py` without `--dry-run` is `os.execvpe` (process replace; `timeout_sec` is costume). `--supervise` waits, honors `budget.timeout_sec`, and prints a result envelope. `--ticket` is an optional conductor grant (`run_id`, expiry); `--force` does not skip it; no signature; pass ≠ admit. Run execvpe as a child, never as the conductor.
 
 ---
 
@@ -157,7 +157,7 @@ Do **not** add a costume field for “compaction tier 1–5”. Compress at move
 |-------|----------|----------|
 | Katalog | `SKILL.md` ≤ 140 lines | `scripts/garden_score.py` |
 | Audition | `scripts/audition_chair.py` | 36 cases. Pass ≠ admit |
-| Spawn | `scripts/spawn_chair.py` | 56 cases. Default audition; `--force` skips; `--supervise` waits |
+| Spawn | `scripts/spawn_chair.py` | 69 cases. Default audition; `--force` skips; `--supervise` waits; `--ticket` grants |
 | Halls | `scripts/halls.py` | `--hall` / `MADA_HALL`. `test_halls.sh` |
 | Tacet | `scripts/tacet-guard.sh` | 16 cases. Opt-in `pre_tool_call`. Fail-open if `MADA_SECTION` unset |
 | Garden | `scripts/garden_score.py` | 14 cases. Catalog ↔ parts, no `compaction_tier` |
