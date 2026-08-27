@@ -12,7 +12,7 @@ Token economy + structural correctness: peak expression with minimal sounding bo
 
 | Part | Load when |
 |------|-----------|
-| `templates/envelope.json` | A2A/ANP schema + isolation contract |
+| `templates/envelope.json` | Isolation contract. No protocol bus. |
 | `references/composer-scores.md` | Cheap-chair map, named forms, **fugue worktree** |
 | `references/tacet-guard.md` | Opt-in `pre_tool_call` latch |
 | `references/spawn-chair.md` | Envelope → `-w`/`-t`/`MADA_*`. First latch. |
@@ -24,8 +24,8 @@ Token economy + structural correctness: peak expression with minimal sounding bo
 | `scripts/tacet-guard.sh` | Child-process latch. `scripts/test_tacet_guard.sh` = 16 |
 | `scripts/spawn_chair.py` | Spawn. Default audition; `--force` skips. `scripts/test_spawn_chair.sh` = 80 |
 | `references/halls.md` | `--hall` / `MADA_HALL`. `scripts/halls.py` + `scripts/test_halls.sh` |
-| `scripts/audition_chair.py` | Audition. `scripts/test_audition_chair.sh` = 36 |
-| `scripts/garden_score.py` | Doc-garden. `scripts/test_garden_score.sh` |
+| `scripts/audition_chair.py` | Audition. `scripts/test_audition_chair.sh` = 38 |
+| `scripts/garden_score.py` | Doc-garden. `scripts/test_garden_score.sh` = 16 |
 | `scripts/snare_score.py` | Target AGENTS.md. `scripts/test_snare_score.sh` |
 
 ## 1. Chairs
@@ -109,7 +109,7 @@ Schema: `templates/envelope.json`. Spawn reader: `scripts/spawn_chair.py`. Audit
 
 `sender.section` is an **interface**. `audition_chair.py` pass = may try; `admit` is always false. Routing / quota / Brass stay with the conductor. Auto-admit plugins are refused.
 
-ANP = lifecycle bus (`SPEC_LOCKED`, `TEST_PASSED`, `CIRCUIT_BREAK`). A2A = fugue handover. AGUI = human waveform.
+Cue names (`SPEC_LOCKED`, `TEST_PASSED`, `CIRCUIT_BREAK`) are strings, not a protocol bus. AGUI = human waveform.
 
 ## 4. Conduct
 

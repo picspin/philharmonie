@@ -130,7 +130,7 @@ hermes chat -q "<review brief>" -m <review> -t terminal,file --yolo
 
 Stretto = conductor merge after both islands exit. Forbid simultaneous push to the same branch.
 
-Envelope must match spawn: `isolation: worktree` + `sidechain: true` → worktree chat (or a context-only subagent). `isolation: shared` for review/Snare. Conversation isolation ≠ git isolation — a coding fugue that writes files needs a worktree.
+Envelope must match spawn: `isolation: worktree` → worktree chat (or a context-only subagent). `isolation: shared` for review/Snare. Conversation isolation ≠ git isolation — a coding fugue that writes files needs a worktree. `sidechain` is costume; do not send it.
 
 Tacet is heteronomous via the tool gate / `allowed_toolsets`, not courtesy. A Tacet chair does not get `file` write or `terminal`.
 

@@ -46,8 +46,8 @@ git clone git@github.com:picspin/philharmonie.git
 cd philharmonie
 
 # 0-token contracts (no API key, no LLM)
-bash scripts/test_audition_chair.sh   # 36
-bash scripts/test_garden_score.sh     # 14
+bash scripts/test_audition_chair.sh   # 38
+bash scripts/test_garden_score.sh     # 16
 bash scripts/test_snare_score.sh      # 27
 bash scripts/test_spawn_chair.sh      # 80
 bash scripts/test_tacet_guard.sh      # 16
@@ -156,11 +156,11 @@ Do **not** add a costume field for “compaction tier 1–5”. Compress at move
 | Latch | Artifact | Contract |
 |-------|----------|----------|
 | Katalog | `SKILL.md` ≤ 140 lines | `scripts/garden_score.py` |
-| Audition | `scripts/audition_chair.py` | 36 cases. Pass ≠ admit |
+| Audition | `scripts/audition_chair.py` | 38 cases. Pass ≠ admit |
 | Spawn | `scripts/spawn_chair.py` | 80 cases. Default audition; `--force` skips; `--supervise` waits; `--ticket` grants; `--lock-bass` chmods |
 | Halls | `scripts/halls.py` | `--hall` / `MADA_HALL`. `test_halls.sh` |
 | Tacet | `scripts/tacet-guard.sh` | 16 cases. Opt-in `pre_tool_call`. Fail-open if `MADA_SECTION` unset |
-| Garden | `scripts/garden_score.py` | 14 cases. Catalog ↔ parts, no `compaction_tier` |
+| Garden | `scripts/garden_score.py` | 16 cases. Catalog ↔ parts, no costume fields |
 | Snare | `scripts/snare_score.py` | 27 cases. Target `AGENTS.md` 4 rungs |
 
 Verdict (what was adopted / refused, and why): [`references/harness-verdict.md`](references/harness-verdict.md).

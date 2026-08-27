@@ -7,7 +7,7 @@ Copy **mechanism**, not **costume**. Hermes already has `-w`, `pre_tool_call`, `
 | Proposal | Verdict | Why |
 |----------|---------|-----|
 | SKILL as Katalog | **Adopt**, budget **≤140 lines** (not 100) | 100 cuts the chair table / Tacet / 0-token ladder. Wave physics stay in parts. |
-| `sidechain` + `isolation` + `allowed_toolsets` + `tacet_paths` | **Adopt** as spawn **contract** | `scripts/spawn_chair.py` honors them at `hermes chat` / `-t` / `-w`. Child/hook do not parse `envelope.json`. |
+| `isolation` + `allowed_toolsets` + `tacet_paths` | **Adopt** as spawn **contract** | `scripts/spawn_chair.py` honors them at `hermes chat` / `-t` / `-w`. `sidechain` was costume; deleted. Child/hook do not parse `envelope.json`. |
 | `compaction_tier` 1–5 | **Refuse** | Hermes is threshold/target, not Claude-Code five stages. A 1–5 field is a costume. |
 | Diminuendo practice | **Adopt** (convention) | Last 3 exchanges full → older tool results one-line → `/compress` only at a movement boundary. |
 | Parallel fugue worktree | **Adopt, scoped** | Subject / Horn: `hermes chat -w`. Violin II + Snare: **shared** tree. No per-worktree observability stack. |
@@ -28,8 +28,8 @@ Mechanized — do not rebuild:
 | Spawn | `scripts/spawn_chair.py` | `test_spawn_chair.sh` 80. Default audition; `--force` skips; `--supervise` waits; `--ticket` grants; `--lock-bass` chmods. `--hall` / `MADA_HALL`. |
 | Halls | `scripts/halls.py` | `test_halls.sh`. Adapters plug in; chairs do not auto-admit. |
 | Tacet | `scripts/tacet-guard.sh` | `test_tacet_guard.sh` 16. Opt-in `pre_tool_call`. Unset `MADA_SECTION` = fail-open. |
-| Audition | `scripts/audition_chair.py` | `test_audition_chair.sh` 36. `admit` always false. |
-| Garden | `scripts/garden_score.py` | `test_garden_score.sh` 14. Katalog ↔ parts. |
+| Audition | `scripts/audition_chair.py` | `test_audition_chair.sh` 38. `admit` always false. |
+| Garden | `scripts/garden_score.py` | `test_garden_score.sh` 16. Katalog ↔ parts. |
 | Snare | `scripts/snare_score.py` | `test_snare_score.sh` 27. Target `AGENTS.md` 4 rungs. |
 | Ceilings | `templates/section-contract.json` | Violin II / Snare isolation lock = `shared` |
 | Fugue rooms | `hermes chat -w` | Subject / Horn only. No per-worktree observability stack. |
@@ -46,11 +46,11 @@ Same-hall capability declaration is allowed. Tacet ≠ sandbox.
 | Hall capability ∩ fail-closed | landed |
 | Thin supervisor (`timeout_sec`, result envelope, JSONL) | landed |
 | Run ticket / admission | landed |
-| Ground bass OS/Git readonly | this wave |
-| Delete costume schema fields (protocol bus, sidechain, agent_id) | next |
+| Ground bass OS/Git readonly | landed |
+| Delete costume schema fields (protocol bus, sidechain, agent_id) | this wave |
 | Diminuendo | Convention. Hermes compressor stays threshold/target. |
 | `/restart` | Human only. `MADA_SECTION` unset here = fail-open by design. |
 
-Next `继续` / `下一票` / go after this lock = Delete costume schema fields, not another hall.
+Next `继续` / `下一票` / go after this lock = Diminuendo (convention only; no code). Do not invent a hall.
 
 Details: `composer-scores.md` § Fugue isolation, `spawn-chair.md`, `tacet-guard.md`, `audition-chair.md`, `garden-score.md`, `snare-score.md`.
