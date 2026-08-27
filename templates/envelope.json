@@ -72,6 +72,7 @@
           "type": "array",
           "items": {
             "type": "object",
+            "additionalProperties": false,
             "required": ["type", "path_or_uri"],
             "properties": {
               "type": { "type": "string", "enum": ["spec", "patch", "test_report", "ast_diff", "metric"] },

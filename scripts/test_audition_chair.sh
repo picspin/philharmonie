@@ -313,6 +313,37 @@ env_json "$WORKDIR/extra.json" <<'JSON'
 JSON
 run "extra protocol fail" fail python3 "$AUD" --envelope "$WORKDIR/extra.json"
 
+env_json "$WORKDIR/agent.json" <<'JSON'
+{
+  "movement": "II. Variation",
+  "sender": {"section": "violin_1", "model": "grok-4.6", "agent_id": "v1"},
+  "cue": "SPEC_LOCKED",
+  "ground_bass_ref": "SPEC.md#v1",
+  "isolation": "worktree",
+  "allowed_toolsets": ["terminal", "file"],
+  "budget": {"dynamic_mark": "mf"},
+  "payload": {"summary": "impl"}
+}
+JSON
+run "extra sender.agent_id fail" fail python3 "$AUD" --envelope "$WORKDIR/agent.json"
+
+env_json "$WORKDIR/art.json" <<'JSON'
+{
+  "movement": "II. Variation",
+  "sender": {"section": "violin_1", "model": "grok-4.6"},
+  "cue": "SPEC_LOCKED",
+  "ground_bass_ref": "SPEC.md#v1",
+  "isolation": "worktree",
+  "allowed_toolsets": ["terminal", "file"],
+  "budget": {"dynamic_mark": "mf"},
+  "payload": {
+    "summary": "impl",
+    "artifacts": [{"type": "spec", "path_or_uri": "SPEC.md", "costume": true}]
+  }
+}
+JSON
+run "extra artifact key fail" fail python3 "$AUD" --envelope "$WORKDIR/art.json"
+
 echo
 if [[ "$fail" -eq 0 ]]; then
   echo "ALL $n PASSED"

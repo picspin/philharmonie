@@ -24,8 +24,8 @@ Token economy + structural correctness: peak expression with minimal sounding bo
 | `scripts/tacet-guard.sh` | Child-process latch. `scripts/test_tacet_guard.sh` = 16 |
 | `scripts/spawn_chair.py` | Spawn. Default audition; `--force` skips. `scripts/test_spawn_chair.sh` = 80 |
 | `references/halls.md` | `--hall` / `MADA_HALL`. `scripts/halls.py` + `scripts/test_halls.sh` |
-| `scripts/audition_chair.py` | Audition. `scripts/test_audition_chair.sh` = 40 |
-| `scripts/garden_score.py` | Doc-garden. `scripts/test_garden_score.sh` = 18 |
+| `scripts/audition_chair.py` | Audition. `scripts/test_audition_chair.sh` = 44 |
+| `scripts/garden_score.py` | Doc-garden. `scripts/test_garden_score.sh` = 20 |
 | `scripts/snare_score.py` | Target AGENTS.md. `scripts/test_snare_score.sh` |
 
 ## 1. Chairs

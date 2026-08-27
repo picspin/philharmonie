@@ -163,6 +163,18 @@ PY
 run "additionalProperties true fail" err python3 "$GARDEN" --root "$WORKDIR/addprop"
 check "mentions additionalProperties" has_reason "additionalProperties"
 
+clone_tree "$WORKDIR/nested"
+python3 - "$WORKDIR/nested/templates/envelope.json" <<'PY'
+import json, sys
+from pathlib import Path
+p = Path(sys.argv[1])
+data = json.loads(p.read_text(encoding="utf-8"))
+data["properties"]["sender"].pop("additionalProperties", None)
+p.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
+PY
+run "nested additionalProperties missing fail" err python3 "$GARDEN" --root "$WORKDIR/nested"
+check "mentions nested additionalProperties" has_reason "additionalProperties"
+
 echo
 if [[ "$fail" -eq 0 ]]; then
   echo "ALL $n PASSED"

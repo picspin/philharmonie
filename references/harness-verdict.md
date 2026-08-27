@@ -28,8 +28,8 @@ Mechanized — do not rebuild:
 | Spawn | `scripts/spawn_chair.py` | `test_spawn_chair.sh` 80. Default audition; `--force` skips; `--supervise` waits; `--ticket` grants; `--lock-bass` chmods. `--hall` / `MADA_HALL`. |
 | Halls | `scripts/halls.py` | `test_halls.sh`. Adapters plug in; chairs do not auto-admit. |
 | Tacet | `scripts/tacet-guard.sh` | `test_tacet_guard.sh` 16. Opt-in `pre_tool_call`. Unset `MADA_SECTION` = fail-open. |
-| Audition | `scripts/audition_chair.py` | `test_audition_chair.sh` 40. `admit` always false. |
-| Garden | `scripts/garden_score.py` | `test_garden_score.sh` 18. Katalog ↔ parts. |
+| Audition | `scripts/audition_chair.py` | `test_audition_chair.sh` 44. `admit` always false. |
+| Garden | `scripts/garden_score.py` | `test_garden_score.sh` 20. Katalog ↔ parts. |
 | Snare | `scripts/snare_score.py` | `test_snare_score.sh` 27. Target `AGENTS.md` 4 rungs. |
 | Ceilings | `templates/section-contract.json` | Violin II / Snare isolation lock = `shared` |
 | Fugue rooms | `hermes chat -w` | Subject / Horn only. No per-worktree observability stack. |
@@ -50,7 +50,7 @@ Same-hall capability declaration is allowed. Tacet ≠ sandbox.
 | Delete costume schema fields (protocol bus, sidechain, agent_id) | landed |
 | Diminuendo | landed. Convention. `/compress` at a movement boundary. No field. |
 | `/restart` | landed. Human only. Unset `MADA_SECTION` = fail-open. Do not auto-restart. |
-| Extra instance keys (`additionalProperties`) | this wave. Schema false. Extra `protocol` fails audition. |
+| Extra instance keys (`additionalProperties`) | landed. Schema false at every object node. Extra `protocol` / `sender.agent_id` / artifact keys fail audition. |
 
 Costume wave closed. Next `继续` / `下一票` / go = do not invent a hall. Do not add a field nobody reads.
 

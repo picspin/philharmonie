@@ -5,7 +5,7 @@ Checks (no LLM):
   1. Every `references|scripts|templates/...` path in SKILL.md exists.
   2. Every file in those dirs is named in SKILL.md (no orphan parts).
   3. SKILL.md ≤ 140 lines.
-  4. envelope.json has no compaction_tier / protocol / message_type / sidechain / agent_id (refused costume). Root additionalProperties is false.
+  4. envelope.json has no compaction_tier / protocol / message_type / sidechain / agent_id (refused costume). Every object node additionalProperties is false.
   5. sender.section enum == section-contract ceilings == spawn/audition SECTIONS.
   6. Each non-test script has a sibling test_*.sh.
 
@@ -70,6 +70,26 @@ def load_json(path: Path) -> Any:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
+def object_nodes(node: Any, path: str = "$") -> List[str]:
+    """Paths of JSON Schema object nodes whose additionalProperties is not false."""
+    bad: List[str] = []
+    if not isinstance(node, dict):
+        return bad
+    if node.get("type") == "object" and node.get("additionalProperties") is not False:
+        bad.append(path)
+    props = node.get("properties")
+    if isinstance(props, dict):
+        for key, child in props.items():
+            bad.extend(object_nodes(child, f"{path}.{key}"))
+    items = node.get("items")
+    if isinstance(items, dict):
+        bad.extend(object_nodes(items, f"{path}[]"))
+    elif isinstance(items, list):
+        for i, child in enumerate(items):
+            bad.extend(object_nodes(child, f"{path}[{i}]"))
+    return bad
+
+
 def garden(root: Path) -> List[str]:
     errors: List[str] = []
     skill_path = root / "SKILL.md"
@@ -107,8 +127,11 @@ def garden(root: Path) -> List[str]:
             envelope = None
         else:
             props = envelope.get("properties") if isinstance(envelope, dict) else None
-            if isinstance(envelope, dict) and envelope.get("additionalProperties") is not False:
-                errors.append("additionalProperties must be false in templates/envelope.json")
+            if isinstance(envelope, dict):
+                for loc in object_nodes(envelope):
+                    errors.append(
+                        f"additionalProperties must be false in templates/envelope.json ({loc})"
+                    )
             if isinstance(props, dict):
                 for key in ("protocol", "message_type", "sidechain"):
                     if key in props:
