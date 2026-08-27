@@ -145,7 +145,7 @@ export MADA_HERMES=$(command -v hermes)   # Hermes binary pin still works
 
 Codex shared+tools still spawns; tool gate is the hook, not argv. Pi cannot spawn this wave. Recipe: [`references/halls.md`](references/halls.md).
 
-Do **not** add a costume field for “compaction tier 1–5”. Compress at movement boundaries.
+Do **not** add a costume field for “compaction tier 1–5”. Diminuendo is convention: last 3 exchanges full; older tool results one-line; `/compress` only at a movement boundary.
 
 换 Codex / Claude Code / Pi：`--hall` 换台，认信封和闩，不要重写大厅。
 

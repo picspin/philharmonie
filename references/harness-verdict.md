@@ -47,10 +47,10 @@ Same-hall capability declaration is allowed. Tacet ≠ sandbox.
 | Thin supervisor (`timeout_sec`, result envelope, JSONL) | landed |
 | Run ticket / admission | landed |
 | Ground bass OS/Git readonly | landed |
-| Delete costume schema fields (protocol bus, sidechain, agent_id) | this wave |
-| Diminuendo | Convention. Hermes compressor stays threshold/target. |
-| `/restart` | Human only. `MADA_SECTION` unset here = fail-open by design. |
+| Delete costume schema fields (protocol bus, sidechain, agent_id) | landed |
+| Diminuendo | this wave. Convention. `/compress` at a movement boundary. No field. |
+| `/restart` | next. Human only. `MADA_SECTION` unset here = fail-open by design. |
 
-Next `继续` / `下一票` / go after this lock = Diminuendo (convention only; no code). Do not invent a hall.
+Next `继续` / `下一票` / go after this lock = `/restart` is human-only (docs). Do not invent a hall. Do not auto-restart.
 
 Details: `composer-scores.md` § Fugue isolation, `spawn-chair.md`, `tacet-guard.md`, `audition-chair.md`, `garden-score.md`, `snare-score.md`.

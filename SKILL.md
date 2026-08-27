@@ -92,7 +92,7 @@ The host compressor is threshold/target, **not** five Claude-Code tiers. Do not 
 
 1. Last 3 exchanges: full tool results.
 2. Older tool results: one-line placeholder / path.
-3. Compress only at a **movement boundary**.
+3. `/compress` only at a **movement boundary**. Not mid-movement. Not a schema field.
 
 A mid-movement ff summary murders the theme.
 
