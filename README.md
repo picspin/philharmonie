@@ -56,6 +56,7 @@ bash scripts/test_snare_score.sh      # 27
 bash scripts/test_spawn_chair.sh      # 80
 bash scripts/test_tacet_guard.sh      # 16
 bash scripts/test_halls.sh            # 39
+bash scripts/test_jev_router.sh       # Jev System One router
 python3 scripts/garden_score.py       # Katalog ↔ parts
 ```
 
@@ -68,8 +69,17 @@ You need `python3` ≥ 3.10, `bash`, and `jsonschema`. Hermes is optional until 
 ## 5-minute score / 五分钟总谱
 
 1. Lock the bass: a `SPEC.md` plus failing tests. Oboe. No Violin yet.
-2. Write an envelope, or start from `examples/`.
-3. Audition, then spawn (dry-run first):
+2. Fast-route with Jev System One (optional, avoids 429/quota by classifying chair & hall before spawning):
+
+```bash
+# Export TYPESAFE_API_KEY (or place in .env.typesafe)
+export TYPESAFE_API_KEY="***"
+python3 scripts/jev_router.py "Implement non-linear Bloch equation solver"
+# Status: ROUTED | Chair: Beethoven_Brass | Recommended Model: gpt-5.6-sol | Safety: 0.99
+```
+
+3. Write an envelope, or start from `examples/`.
+4. Audition, then spawn (dry-run first):
 
 ```bash
 python3 scripts/audition_chair.py --envelope examples/violin-1.json
@@ -83,14 +93,14 @@ python3 scripts/spawn_chair.py --dry-run --envelope examples/tacet-mute.json
 # {"ok":false,"error":"allowed_toolsets is empty — Tacet chair, will not spawn"}
 ```
 
-4. Before a coding wave, ask the **target** repo (not this one) for its 4-rung list:
+5. Before a coding wave, ask the **target** repo (not this one) for its 4-rung list:
 
 ```bash
 python3 scripts/snare_score.py --root /path/to/your/project
 # wants AGENTS.md with pasteable lint / unit / e2e / security commands
 ```
 
-5. Only then replace the process:
+6. Only then replace the process:
 
 ```bash
 export MADA_HERMES="$(command -v hermes)"   # or your wrapper
@@ -161,6 +171,7 @@ Do not add a field for “compaction tier 1–5”. Diminuendo is convention: la
 |-------|----------|----------|
 | Katalog | `SKILL.md` ≤ 140 lines | `scripts/garden_score.py` |
 | Audition | `scripts/audition_chair.py` | 44 cases. Pass ≠ admit |
+| Jev Router | `scripts/jev_router.py` | System One fast structural router (`test_jev_router.sh`). Jev Choice/Score/Noul, prompt-injection circuit break |
 | Spawn | `scripts/spawn_chair.py` | 80 cases. Default audition; `--force` skips; `--supervise` waits; `--ticket` grants; `--lock-bass` chmods |
 | Halls | `scripts/halls.py` | `--hall` / `MADA_HALL`. `test_halls.sh` 39 |
 | Tacet | `scripts/tacet-guard.sh` | 16 cases. Opt-in `pre_tool_call`. Fail-open if `MADA_SECTION` unset. `/restart` human-only |
