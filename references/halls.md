@@ -19,13 +19,16 @@ Cannot enforce → exit 2, dry-run included. No degraded argv.
 | `claude` | argv `--worktree` | argv `--allowedTools` | argv `--model` | external |
 | `codex` | refuse if envelope `worktree` | env + external hook | argv `-m` | external |
 | `pi` | refuse `worktree` | refuse tools (no hook) | refuse (cannot pin) | none |
+| `dsh` | refuse `worktree` | env + external hook | refuse (cannot pin) | external |
 
-Binary pins: `MADA_HERMES` / `MADA_CLAUDE` / `MADA_CODEX` / `MADA_PI` (env, then `$PATH`).
+Binary pins: `MADA_HERMES` / `MADA_CLAUDE` / `MADA_CODEX` / `MADA_PI` / `MADA_DSH` (env, then `$PATH`).
+Profile pin: `MADA_DSH_PROFILE` (default `headless`).
 
 Hermes routing (`cliproxy` / `litellm-gateway` / alias) stays in the Hermes adapter.
 Claude `--permission-mode acceptEdits` = unattended analog of `--yolo`, not a sandbox bypass.
 Codex sandbox: `codex exec -m -s workspace-write`; override with `MADA_CODEX_SANDBOX`.
 Pi this wave cannot spawn: it cannot pin `sender.model`. Do not invent `-m`.
+DSH this wave cannot spawn standalone envelopes: headless CLI cannot pin `sender.model`. Do not invent `-m`. Use Cordis plugin mode for internal symphony roster.
 
 Unknown `--hall` refuses. Mute / brass / audition latches apply **before** the adapter.
 

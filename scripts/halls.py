@@ -13,7 +13,7 @@ import os
 import shutil
 from typing import Dict, List, Optional, Sequence
 
-HALLS = ("hermes", "codex", "claude", "pi")
+HALLS = ("hermes", "codex", "claude", "pi", "dsh")
 CAP_KEYS = ("worktree", "tool_allowlist", "model_pin", "pre_tool_hook")
 
 
@@ -157,11 +157,27 @@ class PiHall:
         return [self.binary(), query]
 
 
+class DshHall:
+    """DeepSeek Harness CLI (dsh --profile headless <query>)."""
+
+    name = "dsh"
+    capabilities = _caps(worktree=False, tool_allowlist=False, model_pin=False, pre_tool_hook="external")
+
+    def binary(self) -> str:
+        return _which_or(("MADA_DSH", "DSH"), "dsh")
+
+    def argv(self, *, model: str, query: str, isolation: str, tools: Sequence[str]) -> List[str]:
+        del model, isolation, tools  # env is the contract; dsh headless is fixed profile
+        profile = os.environ.get("MADA_DSH_PROFILE") or "headless"
+        return [self.binary(), "--profile", profile, query]
+
+
 _REGISTRY = {
     "hermes": HermesHall,
     "claude": ClaudeHall,
     "codex": CodexHall,
     "pi": PiHall,
+    "dsh": DshHall,
 }
 
 

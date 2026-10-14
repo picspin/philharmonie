@@ -129,6 +129,7 @@ want = {
   "claude": {"worktree": True,  "tool_allowlist": True,  "model_pin": True,  "pre_tool_hook": "external"},
   "codex":  {"worktree": False, "tool_allowlist": False, "model_pin": True,  "pre_tool_hook": "external"},
   "pi":     {"worktree": False, "tool_allowlist": False, "model_pin": False, "pre_tool_hook": "none"},
+  "dsh":    {"worktree": False, "tool_allowlist": False, "model_pin": False, "pre_tool_hook": "external"},
 }
 keys = ("worktree", "tool_allowlist", "model_pin", "pre_tool_hook")
 bad = []
@@ -246,6 +247,50 @@ check "codex env MADA_ISOLATION=shared" has env MADA_ISOLATION shared
 
 run "pi shared still refuse (no model_pin)" err \
   python3 "$SPAWN" --hall pi --dry-run --envelope "$WORKDIR/v2.json" -q "review brief"
+
+# dsh — worktree refuse & model_pin refuse (cannot pin sender.model; fail-closed)
+run "dsh worktree refuse" err \
+  python3 "$SPAWN" --hall dsh --dry-run --envelope "$WORKDIR/v1.json" -q "impl brief"
+run "dsh shared still refuse (no model_pin)" err \
+  python3 "$SPAWN" --hall dsh --dry-run --envelope "$WORKDIR/v2.json" -q "review brief"
+
+# dsh argv shape & profile overrides
+check "dsh default argv --profile headless" python3 -c '
+import sys
+sys.path.insert(0, "'"$ROOT"'/scripts")
+import halls
+h = halls.resolve_hall("dsh")
+argv = h.argv(model="deepseek-chat", query="run test", isolation="shared", tools=["terminal"])
+assert argv[1:] == ["--profile", "headless", "run test"], f"bad argv: {argv}"
+'
+
+check "dsh MADA_DSH_PROFILE override" python3 -c '
+import os, sys
+sys.path.insert(0, "'"$ROOT"'/scripts")
+import halls
+os.environ["MADA_DSH_PROFILE"] = "symphony"
+h = halls.resolve_hall("dsh")
+argv = h.argv(model="deepseek-chat", query="run test", isolation="shared", tools=["terminal"])
+assert argv[1:] == ["--profile", "symphony", "run test"], f"bad argv: {argv}"
+'
+
+check "dsh MADA_DSH binary override" python3 -c '
+import os, sys
+sys.path.insert(0, "'"$ROOT"'/scripts")
+import halls
+os.environ["MADA_DSH"] = "/custom/bin/dsh"
+h = halls.resolve_hall("dsh")
+assert h.binary() == "/custom/bin/dsh", f"bad binary: {h.binary()}"
+'
+
+check "env MADA_HALL=dsh resolves" python3 -c '
+import os, sys
+sys.path.insert(0, "'"$ROOT"'/scripts")
+import halls
+os.environ["MADA_HALL"] = "dsh"
+h = halls.resolve_hall()
+assert h.name == "dsh", f"bad hall: {h.name}"
+'
 
 # env override + CLI wins
 run "MADA_HALL=claude" ok \
