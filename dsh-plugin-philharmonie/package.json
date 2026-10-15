@@ -1,0 +1,21 @@
+{
+  "name": "dsh-plugin-philharmonie",
+  "version": "0.1.0",
+  "description": "DeepSeek Harness Cordis plugin for Mada Symphony (Philharmonie)",
+  "type": "module",
+  "main": "index.js",
+  "keywords": [
+    "dsh-plugin",
+    "deepseek-harness",
+    "mada-symphony",
+    "philharmonie",
+    "cordis"
+  ],
+  "author": "picspin",
+  "license": "MIT",
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  }
+}

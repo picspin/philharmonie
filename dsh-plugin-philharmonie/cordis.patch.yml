@@ -1,0 +1,8 @@
+# Mounts the Philharmonie Mada Symphony plugin for DeepSeek Harness (dsh)
+- insert:
+    - id: philharmonie
+      name: dsh-plugin-philharmonie
+      inject:
+        - tools
+      config:
+        philRoot: /home/hilbert/philharmonie

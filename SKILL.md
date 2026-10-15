@@ -23,7 +23,7 @@ Token economy + structural correctness: peak expression with minimal sounding bo
 | `references/snare-score.md` | Target-repo `AGENTS.md` 4-rung latch. |
 | `scripts/tacet-guard.sh` | Child-process latch. `scripts/test_tacet_guard.sh` = 16 |
 | `scripts/spawn_chair.py` | Spawn. Default audition; `--force` skips. `scripts/test_spawn_chair.sh` = 80 |
-| `references/halls.md` | `--hall` / `MADA_HALL`. `scripts/halls.py` + `scripts/test_halls.sh` |
+| `references/halls.md` | `--hall` / `MADA_HALL`. `scripts/halls.py` + `scripts/test_halls.sh` + `scripts/test_dsh_plugin.sh` |
 | `scripts/jev_router.py` | System One fast router. `scripts/test_jev_router.sh` |
 | `scripts/audition_chair.py` | Audition. `scripts/test_audition_chair.sh` = 44 |
 | `scripts/garden_score.py` | Doc-garden. `scripts/test_garden_score.sh` = 20 |
