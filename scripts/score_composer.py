@@ -168,6 +168,20 @@ def registry_errors(registry: Any) -> list[str]:
     return errors
 
 
+def environment_registry(score: dict, environ: Mapping[str, str]) -> dict:
+    """Without a catalog, explicit host pins declare support for their seat's tier."""
+    models = {}
+    for section, route in score["section_routing"].items():
+        key = f"MADA_SECTION_MODEL_{section.upper()}"
+        if section in SHELL_SECTIONS or key not in environ:
+            continue
+        name = environ[key].strip()
+        model = models.setdefault(name, {"id": name, "tiers": []})
+        if route["tier"] not in model["tiers"]:
+            model["tiers"].append(route["tier"])
+    return {"models": list(models.values())}
+
+
 def needed_sections(score: dict) -> set[str]:
     return {"conductor"} | {
         section for movement in score["movements"] for section in movement["active_sections"]
@@ -321,7 +335,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             emit({"ok": False, "admit": False, "errors": errors}, sys.stderr)
             return 2
         path = args.registry or os.environ.get("MADA_HALL_REGISTRY")
-        registry = read_json(path) if path else {"models": []}
+        registry = read_json(path) if path else environment_registry(score, os.environ)
         invalid_registry = registry_errors(registry)
         if invalid_registry:
             emit({"ok": False, "admit": False, "errors": invalid_registry}, sys.stderr)

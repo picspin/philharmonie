@@ -66,14 +66,17 @@ Tier names are `high-reasoning-flash`, `contract-precise`, `heavy-code`,
 `0-token-shell`. One model may declare several tiers. Tier defaults live in the
 composer, outside `templates/section-contract.json`.
 
-Inventory path: `--registry` first, then `MADA_HALL_REGISTRY`; absent means an
-empty model pool. Selection order:
+Inventory path: `--registry` first, then `MADA_HALL_REGISTRY`. When neither is
+set, explicit `MADA_SECTION_MODEL_*` pins are trusted host declarations of model
+availability and support for their respective seat tiers. No pins means an empty
+pool. Both JSON inventories and environment declarations are operator assertions,
+not provider probes. For example, with no registry configured:\n\n```bash\nexport MADA_SECTION_MODEL_CONDUCTOR="YOUR_FLASH_ID"\nexport MADA_SECTION_MODEL_OBOE="YOUR_CONTRACT_ID"\nexport MADA_SECTION_MODEL_VIOLIN_1="YOUR_CODER_ID"\nexport MADA_SECTION_MODEL_VIOLIN_2="YOUR_REVIEW_ID"\npython3 scripts/score_composer.py compose --task "Fix the locked invariant" > score.json\n```\n\nWith a registry, its enabled inventory is authoritative. Selection order:
 
 1. `MADA_SECTION_MODEL_<UPPERCASE_SECTION>`, e.g. `MADA_SECTION_MODEL_VIOLIN_1`.
 2. Registry `sections` bindings (also the future model-dropdown write target).
 3. First enabled compatible model in inventory order.
 
-Pins must exist in the enabled inventory and declare the requested tier or an
+When a registry is configured, pins must exist in its enabled inventory and declare the requested tier or an
 explicit compatible fallback. A bad pin stays unresolved; it never silently
 selects another model. Fallbacks are ordered, one hop, and never escalate to
 `frontier-heavy`. Frontier-tagged models are restricted to Conductor/Heavy Brass.
