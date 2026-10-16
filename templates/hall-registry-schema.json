@@ -1,0 +1,228 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "models"
+  ],
+  "properties": {
+    "models": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "tiers"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "\\S"
+          },
+          "tiers": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "enum": [
+                "high-reasoning-flash",
+                "contract-precise",
+                "heavy-code",
+                "review-critique",
+                "context-long",
+                "multimodal-vision",
+                "frontier-heavy"
+              ]
+            },
+            "minItems": 1
+          },
+          "enabled": {
+            "type": "boolean"
+          }
+        }
+      }
+    },
+    "sections": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "conductor": {
+          "type": "string",
+          "pattern": "\\S"
+        },
+        "oboe": {
+          "type": "string",
+          "pattern": "\\S"
+        },
+        "violin_1": {
+          "type": "string",
+          "pattern": "\\S"
+        },
+        "violin_2": {
+          "type": "string",
+          "pattern": "\\S"
+        },
+        "viola": {
+          "type": "string",
+          "pattern": "\\S"
+        },
+        "cello": {
+          "type": "string",
+          "pattern": "\\S"
+        },
+        "contrabass": {
+          "type": "string",
+          "pattern": "\\S"
+        },
+        "horn": {
+          "type": "string",
+          "pattern": "\\S"
+        },
+        "flute": {
+          "type": "string",
+          "pattern": "\\S"
+        },
+        "organ": {
+          "type": "string",
+          "pattern": "\\S"
+        },
+        "heavy_brass": {
+          "type": "string",
+          "pattern": "\\S"
+        },
+        "snare_drum": {
+          "type": "string",
+          "pattern": "\\S"
+        },
+        "cymbals": {
+          "type": "string",
+          "pattern": "\\S"
+        },
+        "harp": {
+          "type": "string",
+          "pattern": "\\S"
+        },
+        "bassoon": {
+          "type": "string",
+          "pattern": "\\S"
+        },
+        "trumpet": {
+          "type": "string",
+          "pattern": "\\S"
+        }
+      }
+    },
+    "fallbacks": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "high-reasoning-flash": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "high-reasoning-flash",
+              "contract-precise",
+              "heavy-code",
+              "review-critique",
+              "context-long",
+              "multimodal-vision",
+              "frontier-heavy"
+            ]
+          }
+        },
+        "contract-precise": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "high-reasoning-flash",
+              "contract-precise",
+              "heavy-code",
+              "review-critique",
+              "context-long",
+              "multimodal-vision",
+              "frontier-heavy"
+            ]
+          }
+        },
+        "heavy-code": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "high-reasoning-flash",
+              "contract-precise",
+              "heavy-code",
+              "review-critique",
+              "context-long",
+              "multimodal-vision",
+              "frontier-heavy"
+            ]
+          }
+        },
+        "review-critique": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "high-reasoning-flash",
+              "contract-precise",
+              "heavy-code",
+              "review-critique",
+              "context-long",
+              "multimodal-vision",
+              "frontier-heavy"
+            ]
+          }
+        },
+        "context-long": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "high-reasoning-flash",
+              "contract-precise",
+              "heavy-code",
+              "review-critique",
+              "context-long",
+              "multimodal-vision",
+              "frontier-heavy"
+            ]
+          }
+        },
+        "multimodal-vision": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "high-reasoning-flash",
+              "contract-precise",
+              "heavy-code",
+              "review-critique",
+              "context-long",
+              "multimodal-vision",
+              "frontier-heavy"
+            ]
+          }
+        },
+        "frontier-heavy": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "high-reasoning-flash",
+              "contract-precise",
+              "heavy-code",
+              "review-critique",
+              "context-long",
+              "multimodal-vision",
+              "frontier-heavy"
+            ]
+          }
+        }
+      }
+    }
+  },
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Philharmonie host model inventory"
+}
