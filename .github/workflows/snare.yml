@@ -24,4 +24,5 @@ jobs:
           bash scripts/test_spawn_chair.sh
           bash scripts/test_tacet_guard.sh
           bash scripts/test_halls.sh
+          bash scripts/test_score_composer.sh
           python3 scripts/garden_score.py
