@@ -111,6 +111,33 @@ python3 scripts/spawn_chair.py --envelope examples/violin-1.json
 
 ---
 
+## Concert Hall score / 曲谱规划
+
+Compose a task into a versioned timeline, dependency graph and explicit Tacet
+seats. Models resolve from host-declared capability tiers; missing required tiers
+fail closed. No agent or LLM is started.
+
+```bash
+# Offline draft; no API key, no model inventory needed.
+python3 scripts/score_composer.py compose --task "Fix kernel invariant" \
+  --style beethoven_symphony --draft > score.json
+python3 scripts/score_composer.py validate --score score.json
+
+# Fill actual enabled model IDs/tiers in YOUR host registry first.
+python3 scripts/score_composer.py resolve --score score.json \
+  --registry /path/to/host-registry.json > resolved-score.json
+bash scripts/test_score_composer.sh
+```
+
+The JSON is the shared input for the upcoming TUI and DSH Org-Graph ribbon.
+This iteration supplies planning and resolution; live progress and DSH UI
+mounts come later. See [the composer contract](references/score-composer.md),
+[example score](examples/concert-score.json), and the
+[disabled inventory template](examples/hall-registry.json).
+Validation/resolution never grants execution admission.
+
+---
+
 ## Envelope / 信封
 
 Schema: [`templates/envelope.json`](templates/envelope.json).

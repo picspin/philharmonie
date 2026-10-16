@@ -4,6 +4,13 @@ Dates are UTC. Counts are the contract tests in `scripts/test_*.sh`.
 
 ## Unreleased
 
+- Concert Hall planning: versioned score and host inventory schemas; deterministic
+  composer forms, movement dependencies, explicit Tacet, isolation locks and turn budgets.
+- Capability-tier resolution: enabled host inventory, section/environment pins,
+  explicit one-hop fallbacks, stale-pin re-resolution, and 0-token local shell seats.
+  Missing required tiers fail closed; resolution never spawns or admits a chair.
+- Add offline score/disabled inventory examples, composer contract tests and CI coverage.
+
 - README rewritten in a less brochure voice.
 - shields.io badges: Python 3.10+, jsonschema, 226 contracts, Katalog ≤140, last commit.
 - `CONTRIBUTING.md` — how to patch without inventing a hall or an unread field.

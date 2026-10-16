@@ -1,0 +1,325 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "score_id",
+    "style",
+    "task_type",
+    "summary",
+    "movements",
+    "section_routing"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "score_id": {
+      "type": "string",
+      "pattern": "\\S"
+    },
+    "style": {
+      "enum": [
+        "mozart_sonata",
+        "beethoven_symphony",
+        "brahms_variation",
+        "tchaikovsky_ballet",
+        "rachmaninoff_climax"
+      ]
+    },
+    "task_type": {
+      "type": "string",
+      "pattern": "\\S"
+    },
+    "summary": {
+      "type": "string",
+      "pattern": "\\S"
+    },
+    "movements": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/definitions/movement"
+      }
+    },
+    "section_routing": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "conductor": {
+          "$ref": "#/definitions/routing"
+        },
+        "oboe": {
+          "$ref": "#/definitions/routing"
+        },
+        "violin_1": {
+          "$ref": "#/definitions/routing"
+        },
+        "violin_2": {
+          "$ref": "#/definitions/routing"
+        },
+        "viola": {
+          "$ref": "#/definitions/routing"
+        },
+        "cello": {
+          "$ref": "#/definitions/routing"
+        },
+        "contrabass": {
+          "$ref": "#/definitions/routing"
+        },
+        "horn": {
+          "$ref": "#/definitions/routing"
+        },
+        "flute": {
+          "$ref": "#/definitions/routing"
+        },
+        "organ": {
+          "$ref": "#/definitions/routing"
+        },
+        "heavy_brass": {
+          "$ref": "#/definitions/routing"
+        },
+        "snare_drum": {
+          "$ref": "#/definitions/routing"
+        },
+        "cymbals": {
+          "$ref": "#/definitions/routing"
+        },
+        "harp": {
+          "$ref": "#/definitions/routing"
+        },
+        "bassoon": {
+          "$ref": "#/definitions/routing"
+        },
+        "trumpet": {
+          "$ref": "#/definitions/routing"
+        }
+      }
+    },
+    "brass_cue": {
+      "type": "string",
+      "pattern": "\\S"
+    }
+  },
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Philharmonie Concert Hall Score",
+  "description": "Planning contract. Validation and model resolution never admit or spawn a chair.",
+  "definitions": {
+    "movement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "index",
+        "name",
+        "lead_section",
+        "active_sections",
+        "tacet_sections",
+        "isolation",
+        "cue_on_exit",
+        "deliverable",
+        "max_turns",
+        "circuit_breaker",
+        "depends_on"
+      ],
+      "properties": {
+        "index": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "name": {
+          "type": "string",
+          "pattern": "\\S"
+        },
+        "lead_section": {
+          "type": "string",
+          "enum": [
+            "conductor",
+            "oboe",
+            "violin_1",
+            "violin_2",
+            "viola",
+            "cello",
+            "contrabass",
+            "horn",
+            "flute",
+            "organ",
+            "heavy_brass",
+            "snare_drum",
+            "cymbals",
+            "harp",
+            "bassoon",
+            "trumpet"
+          ]
+        },
+        "active_sections": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "enum": [
+              "conductor",
+              "oboe",
+              "violin_1",
+              "violin_2",
+              "viola",
+              "cello",
+              "contrabass",
+              "horn",
+              "flute",
+              "organ",
+              "heavy_brass",
+              "snare_drum",
+              "cymbals",
+              "harp",
+              "bassoon",
+              "trumpet"
+            ]
+          },
+          "minItems": 1
+        },
+        "tacet_sections": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "enum": [
+              "conductor",
+              "oboe",
+              "violin_1",
+              "violin_2",
+              "viola",
+              "cello",
+              "contrabass",
+              "horn",
+              "flute",
+              "organ",
+              "heavy_brass",
+              "snare_drum",
+              "cymbals",
+              "harp",
+              "bassoon",
+              "trumpet"
+            ]
+          }
+        },
+        "isolation": {
+          "enum": [
+            "shared",
+            "worktree"
+          ]
+        },
+        "cue_on_exit": {
+          "type": "string",
+          "pattern": "\\S"
+        },
+        "deliverable": {
+          "type": "string",
+          "pattern": "\\S"
+        },
+        "max_turns": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "circuit_breaker": {
+          "type": "boolean"
+        },
+        "depends_on": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/definitions/dependency"
+          }
+        }
+      }
+    },
+    "dependency": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "movement",
+        "cue",
+        "artifact"
+      ],
+      "properties": {
+        "movement": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "cue": {
+          "type": "string",
+          "pattern": "\\S"
+        },
+        "artifact": {
+          "type": "string",
+          "pattern": "\\S"
+        }
+      }
+    },
+    "routing": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "tier",
+        "assigned_model",
+        "resolution",
+        "resolved_tier",
+        "source"
+      ],
+      "properties": {
+        "tier": {
+          "enum": [
+            "high-reasoning-flash",
+            "contract-precise",
+            "heavy-code",
+            "review-critique",
+            "context-long",
+            "multimodal-vision",
+            "frontier-heavy",
+            "0-token-shell"
+          ]
+        },
+        "assigned_model": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "\\S"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "resolution": {
+          "enum": [
+            "unresolved",
+            "resolved",
+            "fallback",
+            "local"
+          ]
+        },
+        "resolved_tier": {
+          "enum": [
+            "high-reasoning-flash",
+            "contract-precise",
+            "heavy-code",
+            "review-critique",
+            "context-long",
+            "multimodal-vision",
+            "frontier-heavy",
+            "0-token-shell",
+            null
+          ]
+        },
+        "source": {
+          "enum": [
+            "none",
+            "registry",
+            "section-config",
+            "environment",
+            "local-shell"
+          ]
+        }
+      }
+    }
+  }
+}

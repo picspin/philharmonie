@@ -1,0 +1,55 @@
+{
+  "models": [
+    {
+      "id": "replace-with-high-reasoning-flash-model-id",
+      "tiers": [
+        "high-reasoning-flash"
+      ],
+      "enabled": false
+    },
+    {
+      "id": "replace-with-contract-precise-model-id",
+      "tiers": [
+        "contract-precise"
+      ],
+      "enabled": false
+    },
+    {
+      "id": "replace-with-heavy-code-model-id",
+      "tiers": [
+        "heavy-code"
+      ],
+      "enabled": false
+    },
+    {
+      "id": "replace-with-review-critique-model-id",
+      "tiers": [
+        "review-critique"
+      ],
+      "enabled": false
+    },
+    {
+      "id": "replace-with-context-long-model-id",
+      "tiers": [
+        "context-long"
+      ],
+      "enabled": false
+    },
+    {
+      "id": "replace-with-multimodal-vision-model-id",
+      "tiers": [
+        "multimodal-vision"
+      ],
+      "enabled": false
+    },
+    {
+      "id": "replace-with-frontier-heavy-model-id",
+      "tiers": [
+        "frontier-heavy"
+      ],
+      "enabled": false
+    }
+  ],
+  "sections": {},
+  "fallbacks": {}
+}
