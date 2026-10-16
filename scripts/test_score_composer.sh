@@ -250,6 +250,39 @@ class ScoreContract(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "invalid JSON constant"):
                 composer.read_json(str(path))
 
+    def test_environment_inventory(self):
+        registry = composer.environment_registry(self.score, {
+            "MADA_SECTION_MODEL_OBOE": "host-model",
+            "MADA_SECTION_MODEL_VIOLIN_1": "host-model",
+            "MADA_SECTION_MODEL_SNARE_DRUM": "ignored-shell-override",
+        })
+        self.assertEqual(composer.registry_errors(registry), [])
+        self.assertEqual(registry["models"], [
+            {"id": "host-model", "tiers": ["contract-precise", "heavy-code"]},
+        ])
+
+    def test_cli_environment_only(self):
+        env = {key: value for key, value in os.environ.items()
+               if not key.startswith("MADA_SECTION_MODEL_") and key != "MADA_HALL_REGISTRY"}
+        for section in ("CONDUCTOR", "OBOE", "VIOLIN_1", "VIOLIN_2"):
+            env[f"MADA_SECTION_MODEL_{section}"] = "declared-host-model"
+        def run(*args):
+            return subprocess.run([sys.executable, str(root / "scripts/score_composer.py"),
+                                   "compose", "--task", "env-only task", *args],
+                                  capture_output=True, text=True, env=env)
+        result = run()
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(json.loads(result.stdout)["section_routing"]["oboe"]["source"], "environment")
+        with tempfile.TemporaryDirectory() as directory:
+            registry = Path(directory) / "empty.json"
+            registry.write_text('{"models": []}')
+            self.assertEqual(run("--registry", str(registry)).returncode, 2)
+        env.pop("MADA_SECTION_MODEL_OBOE")
+        self.assertEqual(run().returncode, 2)
+        env["MADA_SECTION_MODEL_OBOE"] = "declared-host-model"
+        env["MADA_SECTION_MODEL_SNARE_DRUM"] = "llm"
+        self.assertEqual(run("--draft").returncode, 2)
+
     def test_cli(self):
         with tempfile.TemporaryDirectory() as directory:
             inventory = Path(directory) / "registry.json"
