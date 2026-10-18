@@ -20,6 +20,7 @@ import signal
 import stat
 import subprocess
 import sys
+import uuid
 from copy import deepcopy
 from datetime import datetime, timezone
 from pathlib import Path
@@ -381,6 +382,9 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
         help="Wait the child; honor budget.timeout_sec; print result envelope",
     )
     p.add_argument("--jsonl", help="Append spawn/exit JSONL events (requires --supervise)")
+    p.add_argument("--score-id", help="Concert Hall observation score ID")
+    p.add_argument("--movement-index", type=int, help="Concert Hall observation movement (1-based)")
+    p.add_argument("--run-id", help="Observation run label; must agree with a supplied ticket")
     p.add_argument("--ticket", help="Conductor run ticket JSON (run_id, issued_by, expires_at)")
     p.add_argument(
         "--lock-bass",
@@ -437,11 +441,14 @@ def supervise(
     jsonl_path: Optional[str],
     run_id: Optional[str] = None,
     attempt: Optional[int] = None,
+    observation: Optional[Dict[str, Any]] = None,
 ) -> int:
     started = _now()
+    metadata = dict(observation or {}, execution_id=uuid.uuid4().hex, schema_version=1)
     _append_jsonl(
         jsonl_path,
         {
+            **metadata,
             "event": "spawn",
             "ts": started,
             "hall": hall,
@@ -458,6 +465,8 @@ def supervise(
             start_new_session=True,
         )
     except OSError as exc:
+        _append_jsonl(jsonl_path, dict(metadata, event="exit", ts=_now(), run_id=run_id,
+                                      status="error", exit_code=127, exit_reason="spawn_failed"))
         die(f"cannot spawn {cmd[0]}: {exc}")
         return 2
     status, reason, code = "ok", "exited", 0
@@ -477,6 +486,7 @@ def supervise(
     ended = _now()
     exit_code = 124 if status == "timeout" else code
     result = {
+        **metadata,
         "ok": status == "ok",
         "status": status,
         "exit_reason": reason,
@@ -496,6 +506,7 @@ def supervise(
     _append_jsonl(
         jsonl_path,
         {
+            **metadata,
             "event": "exit",
             "ts": ended,
             "status": status,
@@ -514,6 +525,10 @@ def supervise(
 
 def main(argv: Optional[Sequence[str]] = None) -> int:
     args = parse_args(argv)
+    observed = any(value is not None for value in (args.score_id, args.movement_index, args.run_id))
+    if observed and (not args.score_id or not args.score_id.strip() or not args.movement_index
+                     or args.movement_index < 1 or not args.supervise or not args.jsonl):
+        die("observation requires --score-id, positive --movement-index, --supervise and --jsonl")
     if args.jsonl and not args.supervise:
         die("--jsonl requires --supervise")
         return 2
@@ -562,7 +577,14 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         die(exc.message)
         return 2
 
-    run_id = ticket["run_id"] if ticket else None
+    run_id = ticket["run_id"] if ticket else args.run_id
+    if observed and (not run_id or not run_id.strip()):
+        die("observation requires --run-id or a ticket run_id")
+    if ticket and args.run_id is not None and args.run_id != ticket["run_id"]:
+        die("observation run_id differs from ticket")
+    observation = {"score_id": args.score_id, "movement_index": args.movement_index,
+                   "section": child_env["MADA_SECTION"], "isolation": child_env["MADA_ISOLATION"],
+                   "model": envelope["sender"]["model"]} if observed else None
     attempt = ticket["attempt"] if ticket else None
 
     if args.dry_run:
@@ -585,6 +607,8 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             }
         if lock_info:
             body["lock_bass"] = lock_info
+        if observation:
+            body["observation"] = observation
         sys.stdout.write(json.dumps(body, ensure_ascii=False) + "\n")
         return 0
 
@@ -607,6 +631,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             jsonl_path=args.jsonl,
             run_id=run_id,
             attempt=attempt,
+            observation=observation,
         )
     finally:
         restore_lock(saved)
