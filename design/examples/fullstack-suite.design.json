@@ -1,0 +1,312 @@
+{
+  "document_kind": "philharmonie.program.design",
+  "executable": false,
+  "note": "Illustrative authoring model; not accepted by the v1 score validator or an implemented v2 compiler.",
+  "task": {
+    "task_id": "task-fullstack",
+    "goal": "Deliver a frontend/backend application with domain boundaries and an optional extension mechanism.",
+    "deployment_profile": "serverless",
+    "architecture_packs": [
+      "ddd"
+    ],
+    "acceptance": [
+      "locked API and domain tests",
+      "frontend/backend integration",
+      "lint/unit/e2e/security evidence",
+      "selected runtime fitness checks"
+    ],
+    "taste": {
+      "guidance": [
+        "minimal public API",
+        "explicit dependencies",
+        "accessible UI"
+      ],
+      "review_rubric_ref": "review-rubric-v1"
+    },
+    "workspace_binding": null
+  },
+  "score": {
+    "score_id": "fullstack-suite",
+    "revision": "draft-1",
+    "chapters": [
+      {
+        "chapter_id": "contract",
+        "name": "Exposition",
+        "form": "mozart_sonata",
+        "depends_on": [],
+        "body": {
+          "kind": "sequence",
+          "movements": [
+            {
+              "movement_id": "lock-contract",
+              "chairs": [
+                "contract.oboe"
+              ],
+              "inputs": [],
+              "outputs": [
+                "SPEC.md",
+                "api-contract.json",
+                "locked-tests"
+              ],
+              "exit_gate": "contract_reviewed"
+            }
+          ]
+        }
+      },
+      {
+        "chapter_id": "domain",
+        "name": "Developing the domain",
+        "form": "brahms_variation",
+        "depends_on": [
+          "contract"
+        ],
+        "body": {
+          "kind": "sequence",
+          "movements": [
+            {
+              "movement_id": "domain-slice",
+              "chairs": [
+                "backend.impl"
+              ],
+              "inputs": [
+                "SPEC.md"
+              ],
+              "outputs": [
+                "domain.patch",
+                "domain-test-report"
+              ],
+              "exit_gate": "domain_invariants_passed"
+            }
+          ]
+        }
+      },
+      {
+        "chapter_id": "implementation",
+        "name": "Frontend/backend fugue",
+        "form": "bach_fugue",
+        "depends_on": [
+          "domain"
+        ],
+        "body": {
+          "kind": "parallel",
+          "branches": [
+            {
+              "movement_id": "frontend-wave",
+              "chairs": [
+                "frontend.impl"
+              ],
+              "inputs": [
+                "SPEC.md",
+                "api-contract.json",
+                "domain.patch"
+              ],
+              "outputs": [
+                "frontend.patch"
+              ],
+              "exit_gate": "scoped_checks_passed"
+            },
+            {
+              "movement_id": "backend-wave",
+              "chairs": [
+                "backend.impl"
+              ],
+              "inputs": [
+                "SPEC.md",
+                "api-contract.json",
+                "domain.patch"
+              ],
+              "outputs": [
+                "backend.patch"
+              ],
+              "exit_gate": "scoped_checks_passed"
+            }
+          ],
+          "join": {
+            "expected_movements": [
+              "frontend-wave",
+              "backend-wave"
+            ],
+            "gate": "all_branch_artifacts_ready"
+          }
+        }
+      },
+      {
+        "chapter_id": "event-integration",
+        "name": "Selected asynchronous interactions",
+        "form": "mozart_sonata",
+        "depends_on": [
+          "implementation"
+        ],
+        "architecture_packs": [
+          "event_driven"
+        ],
+        "body": {
+          "kind": "sequence",
+          "movements": [
+            {
+              "movement_id": "event-contract",
+              "chairs": [
+                "contract.oboe"
+              ],
+              "inputs": [
+                "SPEC.md"
+              ],
+              "outputs": [
+                "event-schema.json",
+                "idempotency-tests"
+              ],
+              "exit_gate": "event_contract_reviewed"
+            },
+            {
+              "movement_id": "integrate-events",
+              "chairs": [
+                "backend.impl"
+              ],
+              "inputs": [
+                "event-schema.json"
+              ],
+              "outputs": [
+                "integration.patch",
+                "replay-test-report"
+              ],
+              "exit_gate": "event_obligations_passed"
+            }
+          ]
+        }
+      },
+      {
+        "chapter_id": "delivery",
+        "name": "Tutti and delivery",
+        "form": "mozart_sonata",
+        "depends_on": [
+          "event-integration"
+        ],
+        "body": {
+          "kind": "sequence",
+          "movements": [
+            {
+              "movement_id": "counterpoint",
+              "chairs": [
+                "review.violin2"
+              ],
+              "inputs": [
+                "frontend.patch",
+                "backend.patch",
+                "integration.patch"
+              ],
+              "outputs": [
+                "review.md"
+              ],
+              "exit_gate": "review_accepted"
+            },
+            {
+              "movement_id": "stretto",
+              "chairs": [
+                "control.conductor"
+              ],
+              "inputs": [
+                "frontend.patch",
+                "backend.patch",
+                "integration.patch",
+                "review.md"
+              ],
+              "outputs": [
+                "merged-candidate"
+              ],
+              "exit_gate": "integration_checkpointed"
+            },
+            {
+              "movement_id": "verify-candidate",
+              "chairs": [
+                "verify.snare"
+              ],
+              "inputs": [
+                "merged-candidate"
+              ],
+              "outputs": [
+                "verification.json",
+                "runtime-fitness.json"
+              ],
+              "exit_gate": "all_required_checks_passed"
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "chairs": [
+    {
+      "chair_id": "contract.oboe",
+      "section": "oboe",
+      "agent_template_ref": "contract-writer",
+      "runtime_binding": null,
+      "model_binding": {
+        "tier": "contract-precise",
+        "model_id": null
+      },
+      "isolation": "shared"
+    },
+    {
+      "chair_id": "frontend.impl",
+      "section": "violin_1",
+      "agent_template_ref": "frontend-implementer",
+      "runtime_binding": null,
+      "model_binding": {
+        "tier": "heavy-code",
+        "model_id": null
+      },
+      "isolation": "worktree"
+    },
+    {
+      "chair_id": "backend.impl",
+      "section": "violin_1",
+      "agent_template_ref": "backend-implementer",
+      "runtime_binding": null,
+      "model_binding": {
+        "tier": "heavy-code",
+        "model_id": null
+      },
+      "isolation": "worktree"
+    },
+    {
+      "chair_id": "review.violin2",
+      "section": "violin_2",
+      "agent_template_ref": "counterpoint-reviewer",
+      "runtime_binding": null,
+      "model_binding": {
+        "tier": "review-critique",
+        "model_id": null
+      },
+      "isolation": "shared"
+    },
+    {
+      "chair_id": "verify.snare",
+      "section": "snare_drum",
+      "agent_template_ref": "local-shell-verifier",
+      "runtime_binding": null,
+      "model_binding": {
+        "tier": "0-token-shell",
+        "model_id": null
+      },
+      "isolation": "shared"
+    },
+    {
+      "chair_id": "control.conductor",
+      "section": "conductor",
+      "agent_template_ref": "integration-controller",
+      "runtime_binding": null,
+      "model_binding": {
+        "tier": "high-reasoning-flash",
+        "model_id": null
+      },
+      "isolation": "shared"
+    }
+  ],
+  "unresolved_requirements": [
+    "exact workspace/worktree bindings",
+    "agent-template definitions",
+    "runtime/model assignments",
+    "trusted gate implementations"
+  ],
+  "variation_note": "For a task requiring extensions, add a microkernel chapter with extension contracts and compatibility gates; do not select it automatically."
+}
