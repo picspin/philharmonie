@@ -1,0 +1,457 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": 2
+    },
+    "task": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[A-Za-z][A-Za-z0-9_.-]{0,63}$"
+        },
+        "summary": {
+          "type": "string",
+          "pattern": "\\S"
+        },
+        "context": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "deployment": {
+              "type": "string",
+              "pattern": "\\S"
+            },
+            "architecture": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "pattern": "\\S"
+              },
+              "uniqueItems": true
+            },
+            "taste": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "pattern": "\\S"
+              },
+              "uniqueItems": true
+            }
+          },
+          "required": []
+        }
+      },
+      "required": [
+        "id",
+        "summary"
+      ]
+    },
+    "score": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[A-Za-z][A-Za-z0-9_.-]{0,63}$"
+        },
+        "revision": {
+          "type": "string",
+          "pattern": "\\S"
+        },
+        "chapters": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[A-Za-z][A-Za-z0-9_.-]{0,63}$"
+              },
+              "name": {
+                "type": "string",
+                "pattern": "\\S"
+              },
+              "form": {
+                "enum": [
+                  "mozart_sonata",
+                  "bach_fugue",
+                  "bach_variation",
+                  "brahms_variation",
+                  "beethoven_symphony",
+                  "tchaikovsky_ballet",
+                  "rachmaninoff_climax",
+                  "custom"
+                ]
+              },
+              "depends_on": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "pattern": "^[A-Za-z][A-Za-z0-9_.-]{0,63}$"
+                },
+                "uniqueItems": true
+              },
+              "context": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "deployment": {
+                    "type": "string",
+                    "pattern": "\\S"
+                  },
+                  "architecture": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "pattern": "\\S"
+                    },
+                    "uniqueItems": true
+                  },
+                  "taste": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "pattern": "\\S"
+                    },
+                    "uniqueItems": true
+                  }
+                },
+                "required": []
+              },
+              "body": {
+                "$ref": "#/definitions/node"
+              }
+            },
+            "required": [
+              "id",
+              "name",
+              "form",
+              "depends_on",
+              "body"
+            ]
+          },
+          "minItems": 1,
+          "maxItems": 128
+        }
+      },
+      "required": [
+        "id",
+        "revision",
+        "chapters"
+      ]
+    },
+    "chairs": {
+      "type": "object",
+      "minProperties": 1,
+      "propertyNames": {
+        "type": "string",
+        "pattern": "^[A-Za-z][A-Za-z0-9_.-]{0,63}$"
+      },
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "section": {
+            "enum": [
+              "conductor",
+              "oboe",
+              "violin_1",
+              "violin_2",
+              "viola",
+              "cello",
+              "contrabass",
+              "horn",
+              "flute",
+              "organ",
+              "heavy_brass",
+              "snare_drum",
+              "cymbals",
+              "harp",
+              "bassoon",
+              "trumpet"
+            ]
+          },
+          "executor": {
+            "enum": [
+              "command",
+              "agent"
+            ]
+          },
+          "allowed_toolsets": {
+            "type": "array",
+            "items": {
+              "enum": [
+                "terminal",
+                "file",
+                "web",
+                "delegation",
+                "vision"
+              ]
+            },
+            "uniqueItems": true,
+            "minItems": 1
+          },
+          "isolation": {
+            "enum": [
+              "shared",
+              "worktree"
+            ]
+          },
+          "hall": {
+            "enum": [
+              "hermes",
+              "claude",
+              "codex",
+              "pi"
+            ]
+          },
+          "model": {
+            "type": "string",
+            "pattern": "\\S"
+          },
+          "tier": {
+            "type": "string",
+            "pattern": "\\S"
+          }
+        },
+        "required": [
+          "section",
+          "executor",
+          "allowed_toolsets",
+          "isolation"
+        ]
+      }
+    },
+    "ground_bass": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "\\S"
+      },
+      "uniqueItems": true
+    },
+    "budget": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "max_wall_sec": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        }
+      },
+      "required": [
+        "max_wall_sec"
+      ]
+    },
+    "parallelism": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 32
+    },
+    "brass_cue": {
+      "type": "string",
+      "pattern": "\\S"
+    }
+  },
+  "required": [
+    "schema_version",
+    "task",
+    "score",
+    "chairs",
+    "ground_bass",
+    "budget"
+  ],
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Philharmonie composite program v2",
+  "definitions": {
+    "node": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "movement"
+            },
+            "id": {
+              "type": "string",
+              "pattern": "^[A-Za-z][A-Za-z0-9_.-]{0,63}$"
+            },
+            "chair": {
+              "type": "string",
+              "pattern": "^[A-Za-z][A-Za-z0-9_.-]{0,63}$"
+            },
+            "argv": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "minItems": 1,
+              "maxItems": 256
+            },
+            "prompt": {
+              "type": "string",
+              "pattern": "\\S"
+            },
+            "writes": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "pattern": "\\S"
+              },
+              "uniqueItems": true
+            },
+            "outputs": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "pattern": "\\S"
+              },
+              "uniqueItems": true
+            },
+            "timeout_sec": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "max_attempts": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 10
+            }
+          },
+          "required": [
+            "kind",
+            "id",
+            "chair",
+            "writes",
+            "outputs",
+            "timeout_sec"
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "enum": [
+                "sequence",
+                "parallel"
+              ]
+            },
+            "id": {
+              "type": "string",
+              "pattern": "^[A-Za-z][A-Za-z0-9_.-]{0,63}$"
+            },
+            "children": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/node"
+              },
+              "minItems": 1,
+              "maxItems": 128
+            }
+          },
+          "required": [
+            "kind",
+            "id",
+            "children"
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "loop"
+            },
+            "id": {
+              "type": "string",
+              "pattern": "^[A-Za-z][A-Za-z0-9_.-]{0,63}$"
+            },
+            "baseline": {
+              "$ref": "#/definitions/node"
+            },
+            "body": {
+              "$ref": "#/definitions/node"
+            },
+            "edit_paths": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "pattern": "\\S"
+              },
+              "minItems": 1,
+              "uniqueItems": true
+            },
+            "metric": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "path": {
+                  "type": "string",
+                  "pattern": "\\S"
+                },
+                "key": {
+                  "type": "string",
+                  "pattern": "\\S"
+                },
+                "direction": {
+                  "enum": [
+                    "min",
+                    "max"
+                  ]
+                }
+              },
+              "required": [
+                "path",
+                "key",
+                "direction"
+              ]
+            },
+            "limits": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "max_iterations": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 100000
+                },
+                "max_wall_sec": {
+                  "type": "number",
+                  "exclusiveMinimum": 0
+                },
+                "max_no_improvement": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "max_consecutive_failures": {
+                  "type": "integer",
+                  "minimum": 1
+                }
+              },
+              "required": [
+                "max_iterations",
+                "max_wall_sec"
+              ]
+            }
+          },
+          "required": [
+            "kind",
+            "id",
+            "baseline",
+            "body",
+            "edit_paths",
+            "metric",
+            "limits"
+          ]
+        }
+      ]
+    }
+  }
+}

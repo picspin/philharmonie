@@ -18,6 +18,8 @@ jobs:
       - name: 0-token ladder
         run: |
           set -euo pipefail
+          bash scripts/test_compile_score.sh
+          bash scripts/test_loop_runner.sh
           bash scripts/test_concert_hall.sh
           bash scripts/test_score_composer.sh
           bash scripts/test_audition_chair.sh

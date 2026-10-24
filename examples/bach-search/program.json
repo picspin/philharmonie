@@ -1,0 +1,133 @@
+{
+  "schema_version": 2,
+  "task": {
+    "id": "search-improvement",
+    "summary": "Improve sorted search while retaining first-match semantics",
+    "context": {
+      "architecture": [
+        "library"
+      ],
+      "taste": [
+        "small verified changes"
+      ]
+    }
+  },
+  "score": {
+    "id": "bach-search",
+    "revision": "1",
+    "chapters": [
+      {
+        "id": "variations",
+        "name": "Bach progressive search",
+        "form": "bach_variation",
+        "depends_on": [],
+        "body": {
+          "kind": "loop",
+          "id": "progressive-search",
+          "edit_paths": [
+            "candidate.py"
+          ],
+          "metric": {
+            "path": "metric.json",
+            "key": "comparisons",
+            "direction": "min"
+          },
+          "limits": {
+            "max_iterations": 4,
+            "max_wall_sec": 60,
+            "max_consecutive_failures": 2
+          },
+          "baseline": {
+            "kind": "movement",
+            "id": "verify",
+            "chair": "snare",
+            "argv": [
+              "python3",
+              "SPEC.py"
+            ],
+            "writes": [],
+            "outputs": [
+              "metric.json"
+            ],
+            "timeout_sec": 10
+          },
+          "body": {
+            "kind": "sequence",
+            "id": "variation",
+            "children": [
+              {
+                "kind": "movement",
+                "id": "mutate",
+                "chair": "snare",
+                "argv": [
+                  "python3",
+                  "-c",
+                  "import os;from pathlib import Path;variants=['def search(items, target):\\n    start = 0\\n    while start + 31 < len(items) and items[start + 31] < target:\\n        start += 32\\n    for i in range(start, min(start + 32, len(items))):\\n        if items[i] == target:\\n            return i\\n    return -1\\n', 'def search(items, target):\\n    return -1\\n', 'def search(items, target):\\n    from bisect import bisect_left\\n    i = bisect_left(items, target)\\n    return i if i < len(items) and items[i] == target else -1\\n', 'def search(items, target):\\n    from bisect import bisect_left\\n    i = bisect_left(items, target)\\n    return i if i < len(items) and items[i] == target else -1\\n'];Path('candidate.py').write_text(variants[int(os.environ['PHIL_ITERATION'])-1])"
+                ],
+                "writes": [
+                  "candidate.py"
+                ],
+                "outputs": [],
+                "timeout_sec": 10
+              },
+              {
+                "kind": "movement",
+                "id": "verify",
+                "chair": "snare",
+                "argv": [
+                  "python3",
+                  "SPEC.py"
+                ],
+                "writes": [],
+                "outputs": [
+                  "metric.json"
+                ],
+                "timeout_sec": 10
+              }
+            ]
+          }
+        }
+      },
+      {
+        "id": "finale",
+        "name": "Verify the retained best",
+        "form": "custom",
+        "depends_on": [
+          "variations"
+        ],
+        "body": {
+          "kind": "movement",
+          "id": "final-check",
+          "chair": "snare",
+          "argv": [
+            "python3",
+            "SPEC.py"
+          ],
+          "writes": [],
+          "outputs": [
+            "metric.json"
+          ],
+          "timeout_sec": 10
+        }
+      }
+    ]
+  },
+  "chairs": {
+    "snare": {
+      "section": "snare_drum",
+      "executor": "command",
+      "allowed_toolsets": [
+        "terminal",
+        "file"
+      ],
+      "isolation": "shared"
+    }
+  },
+  "ground_bass": [
+    "SPEC.py"
+  ],
+  "budget": {
+    "max_wall_sec": 90
+  },
+  "parallelism": 2
+}
