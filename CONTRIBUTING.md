@@ -12,6 +12,8 @@ bash scripts/test_snare_score.sh      # 27
 bash scripts/test_spawn_chair.sh      # 80
 bash scripts/test_tacet_guard.sh      # 16
 bash scripts/test_halls.sh            # 39
+bash scripts/test_compile_score.sh   # Composite plans / capabilities
+bash scripts/test_loop_runner.sh     # Persistent loops / recovery
 bash scripts/test_concert_hall.sh    # State service + terminal board
 bash scripts/test_score_composer.sh  # Concert Hall plan + routing
 python3 scripts/garden_score.py       # Katalog ↔ parts, SKILL.md ≤ 140
