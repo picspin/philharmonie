@@ -12,6 +12,7 @@ Token economy + structural correctness: peak expression with minimal sounding bo
 
 | Part | Load when |
 |------|-----------|
+| `references/concert-hall-workbench.md` | Independent web composer, local execution controls and event history |
 | `scripts/compile_score.py` | Composite plans; `templates/program-schema.json`; `scripts/test_compile_score.sh` |
 | `scripts/loop_runner.py` | Durable Bach loops; `scripts/test_loop_runner.sh`; `references/composite-runner.md` |
 | `scripts/concert_hall.py` | State snapshots + TUI; `scripts/test_concert_hall.sh`; `references/concert-hall.md` |

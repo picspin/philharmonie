@@ -276,3 +276,21 @@ See [the runnable search example](examples/bach-search/program.json) and
 [compiler, loop and recovery guide](references/composite-runner.md). The fixture
 needs no model/API; agent Chairs use the existing capability-tier resolver and
 supervised hall adapters.
+
+## Independent Concert Hall workbench / 独立前端工作台
+
+```bash
+python3 concert-hall/server.py --demo --state /tmp/philharmonie-hall
+# Open exactly http://127.0.0.1:8787
+```
+
+Compose task/architecture choices (EDA means Event-Driven Architecture), mixed
+chapters and Chairs, compile a score, explicitly authorize a local run, and view
+persistent Bach decisions and events. No DSH account, unofficial Ribbon slot,
+Node runtime or paid model is required for the offline example.
+For a real task, use `--root /path/to/disposable-task --state /path/outside-task`
+and optionally `--registry host-models.json`.
+
+The workbench is experimental. Service contracts and generated score compatibility
+are tested; socket restrictions prevented browser/HTTP end-to-end validation in
+the implementation environment. See [setup, controls and limitations](references/concert-hall-workbench.md).
