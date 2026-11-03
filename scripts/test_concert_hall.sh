@@ -21,6 +21,16 @@ import score_composer as composer
 import spawn_chair
 
 class HallTests(unittest.TestCase):
+    def test_invalid_utf8_line_preserves_valid_events(self):
+        with tempfile.TemporaryDirectory() as temp:
+            path=Path(temp)/'events.jsonl'
+            path.write_bytes(b'{"event":"valid"}\n\xffbroken\n')
+            events,errors=hall.read_events(path)
+            self.assertEqual(events,[{'event':'valid'}]);self.assertEqual(len(errors),1)
+
+    def test_blank_run_id_is_rejected(self):
+        with self.assertRaises(ValueError):hall.snapshot(self.score,[], '   ')
+
     def setUp(self):
         self.score = composer.compose_score('测试 concert hall', score_id='score-test')
         self.now = datetime(2026, 10, 18, 0, 1, tzinfo=timezone.utc)

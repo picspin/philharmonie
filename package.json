@@ -1,0 +1,12 @@
+{
+  "name": "dsh-plugin-philharmonie",
+  "version": "0.1.0",
+  "description": "Task-driven Concert Hall: composite orchestration scores and persistent Bach loops for DSH.",
+  "type": "module",
+  "license": "MIT",
+  "engines": {"node": ">=24.9", "dsh": ">=0.2.2-alpha.2 <0.3.0"},
+  "exports": {".": "./dsh-plugin-philharmonie/index.mjs", "./client": "./dsh-plugin-philharmonie/client.js", "./package.json": "./package.json"},
+  "files": ["dsh-plugin-philharmonie", "concert-hall/server.py", "concert-hall/web", "scripts/*.py", "templates/*.json", "examples/bach-search", "README.md", "LICENSE"],
+  "dsh": {"bundle": {"patch": "./dsh-plugin-philharmonie/cordis.patch.yml"}, "client": {"platform": "web", "inject": ["@deepseek-ai/dsh-client-ui-layout", "@deepseek-ai/dsh-client-ui-sidebar", "@deepseek-ai/dsh-client-ui-conversation"]}},
+  "scripts": {"build": "node dsh-plugin-philharmonie/build.mjs", "test": "node dsh-plugin-philharmonie/tests/plugin.test.mjs", "prepack": "node dsh-plugin-philharmonie/build.mjs --check"}
+}

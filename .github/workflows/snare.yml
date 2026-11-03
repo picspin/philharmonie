@@ -15,7 +15,7 @@ jobs:
           python-version: "3.12"
       - uses: actions/setup-node@v4
         with:
-          node-version: "22"
+          node-version: "24"
       - name: install jsonschema
         run: python3 -m pip install --quiet "jsonschema>=4.18"
       - name: 0-token ladder
@@ -23,6 +23,9 @@ jobs:
           set -euo pipefail
           python3 -m unittest discover -s concert-hall/tests -v
           node concert-hall/tests/composer.test.mjs
+          node dsh-plugin-philharmonie/tests/plugin.test.mjs
+          node dsh-plugin-philharmonie/build.mjs --check
+          npm --cache /tmp/philharmonie-npm-cache pack --ignore-scripts --dry-run
           node --check concert-hall/web/app.mjs
           bash scripts/test_compile_score.sh
           bash scripts/test_loop_runner.sh

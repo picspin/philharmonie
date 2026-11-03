@@ -46,6 +46,9 @@ def worker(job_path):
     result=dict(execution_id=job['execution_id'],job_hash=digest(job),status='failed',exit_code=None)
     try:
         env=os.environ.copy();env.update(job['env'])
+        # This worker owns the complete job group, including the hall launched
+        # by spawn_chair; no receipt may precede group quiescence.
+        env['PHIL_WORKER_OWNED_GROUP']='1'
         with (job_path.parent/'stdout.log').open('wb') as out, (job_path.parent/'stderr.log').open('wb') as err:
             proc=subprocess.Popen(job['argv'],cwd=job['cwd'],env=env,stdout=out,stderr=err,start_new_session=True)
             while proc.poll() is None:
@@ -197,9 +200,19 @@ class Runner:
     def restore_active_loops(self):
         # Outer best wins after all nested scopes; deepest first.
         with self.lock: rows=list(self.db.execute("SELECT key,value FROM kv WHERE key LIKE 'loop:%'"))
-        for key,raw in sorted(rows,key=lambda x:len(x[0]),reverse=True):
-            data=json.loads(raw)
-            if data.get('phase')!='done': self.restore(data['best'])
+        loops={key[5:]:json.loads(raw) for key,raw in rows}
+        def belongs_to_active_ancestors(address):
+            for parent,data in loops.items():
+                if not address.startswith(parent+'/'): continue
+                phase=data.get('phase')
+                scope=(parent+'/baseline' if phase=='baseline' else
+                       parent+'/iteration-'+str(data['iteration']) if phase=='candidate' else None)
+                if scope is None or not (address==scope or address.startswith(scope+'/')):
+                    return False
+            return True
+        for address,data in sorted(loops.items(),key=lambda x:len(x[0]),reverse=True):
+            if data.get('phase')!='done' and belongs_to_active_ancestors(address):
+                self.restore(data['best'])
     def execute(self,node,address,iterations,deadline,chapter):
         self.gate()
         if deadline is not None and time.time()>=deadline: raise StepFailure('loop wall-clock budget exhausted')

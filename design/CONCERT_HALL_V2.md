@@ -179,6 +179,12 @@ choices, not a mandate that every project use every architecture.
 | IV. Extension / integration | Microkernel only if a plugin boundary is required; EDA only for selected interactions | Horn, Viola, Violin II | Extension contract, event schemas, idempotency/replay checks where selected |
 | V. Tutti / delivery | Integration and serverless fitness | Conductor, Snare, Cymbals | Merged candidate, lint/unit/e2e/security evidence, runtime/deployment checks |
 
+The table lists optional orchestration choices, not the exact roster in the compact
+fullstack design JSON. That example intentionally uses fewer chairs; its chapter
+`depends_on` edges are explicit and its finite sequence/parallel groups imply
+their internal ordering. Per-movement cross-group edges are omitted there and
+must be specified by an executable compiler format.
+
 Harp can review visual artifacts within its tool ceiling; a shell/browser runner
 produces screenshots. Do not give Harp terminal tools merely because a frontend
 task needs browser verification. Review and Snare retain their existing shared-

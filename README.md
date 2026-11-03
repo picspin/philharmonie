@@ -9,7 +9,7 @@ Small tested harness for several LLM agents, or one agent in several roles. 中�
 [![snare](https://github.com/picspin/philharmonie/actions/workflows/snare.yml/badge.svg)](https://github.com/picspin/philharmonie/actions/workflows/snare.yml)
 [![Python](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/)
 [![jsonschema](https://img.shields.io/badge/jsonschema-4.18%2B-informational.svg)](requirements.txt)
-[![contracts](https://img.shields.io/badge/contracts-226-success.svg)](#latches--闩)
+[![contracts](https://img.shields.io/badge/contracts-CI-success.svg)](#latches--闩)
 [![Katalog](https://img.shields.io/badge/Katalog-%E2%89%A4140_lines-lightgrey.svg)](SKILL.md)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![last commit](https://img.shields.io/github/last-commit/picspin/philharmonie)](https://github.com/picspin/philharmonie/commits/main)
@@ -294,3 +294,15 @@ and optionally `--registry host-models.json`.
 The workbench is experimental. Service contracts and generated score compatibility
 are tested; socket restrictions prevented browser/HTTP end-to-end validation in
 the implementation environment. See [setup, controls and limitations](references/concert-hall-workbench.md).
+
+## DSH adapter and remote alignment
+
+The repository root is now an installable DSH bundle with an additive sidebar,
+main panel and compact Session-header action. It reuses the independent workbench
+and persistent runner; it does not replace DSH's native header or invent a Ribbon
+slot. Follow [installation and Session binding](dsh-plugin-philharmonie/README.md).
+
+The five-PR review, confirmed regressions, fixes and treatment of the two other
+DSH branches are recorded in [remote alignment](design/REMOTE_ALIGNMENT.md).
+The adapter remains experimental until official-host/browser acceptance passes;
+mocked slot tests alone are not a release claim.

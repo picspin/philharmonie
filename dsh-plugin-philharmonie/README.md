@@ -1,0 +1,105 @@
+# DSH Concert Hall adapter
+
+This adapter contributes only the supported `main`, `sidebar.panellist` and
+`conversation.session.header.actions` slots. It does not replace the native
+conversation header or claim a native full-width Ribbon slot. The main panel
+embeds the independent workbench; it owns that panel's collapsible graph.
+
+The installable package is now the **repository root**, not this subdirectory.
+The tarball includes Python scripts, schemas and web assets. No pre-existing
+`/home/.../philharmonie` checkout or global fallback search is required.
+
+## Install into an isolated profile
+
+Use Node >=24.9 and DSH 0.2.2-alpha.2 (the source contract reviewed here is
+`deepseek-ai/deepseek-harness@ce7073d51254c26cd63b22a60835b8f948deb447`).
+The target machine also needs Python 3.10+ and `jsonschema>=4.18`.
+
+```bash
+python3 -m pip install -r requirements.txt
+node dsh-plugin-philharmonie/build.mjs --check
+npm pack
+# Initialize the shipped web profile without launching it:
+dsh --profile web --dump-default-config
+# Install the packed repository, not ./dsh-plugin-philharmonie:
+dsh plugin --profile web add /absolute/path/dsh-plugin-philharmonie-0.1.0.tgz
+```
+
+Before booting, create an owner-controlled overlay `philharmonie.local.yml`:
+
+```yaml
+- id: philharmonie
+  config:
+    state: /absolute/path/outside-task/philharmonie-state
+    demo: true
+```
+
+```bash
+dsh --profile web --patch /absolute/path/philharmonie.local.yml --no-open
+```
+
+The bundle's placeholder state path deliberately refuses activation until
+configured. For a real task, replace the complete config with `root` and `state`
+absolute paths (state must be outside the task root), omit `demo`, and optionally
+set `registry`, `python`, and `modelBindings`.
+
+```yaml
+- id: philharmonie
+  config:
+    root: /absolute/path/disposable-task
+    state: /absolute/path/outside-task/philharmonie-state
+    registry: /absolute/path/hall-registry.json
+    modelBindings:
+      - id: the-model-id-accepted-by-your-hall-cli
+        provider: the-dsh-provider-id
+        model: the-dsh-model-id
+```
+
+Tier support still comes from the explicit hall registry. Each enabled registry
+model must have an explicit runtime-id → DSH provider/model binding present in
+the active Host catalog. Missing/failed provider discovery disables the candidate.
+The host never invents tier support from a name or assumes DSH provider ids are
+valid Hermes/Claude/Codex flags. Running agent movements still use the existing
+hall adapters; this does not implement a new DSH-native model-pinning runtime.
+The offline shell demo needs no model mapping or paid API calls.
+
+## Session and task identity
+
+The global sidebar entry works without a selected Session. The compact action
+on a nonblank Session opens the Hall for that Session, preserving DSH's own
+selection/title/navigation. In the Hall, explicitly bind the current task to the
+Session. Merely opening or switching Sessions does not reassign a task. Multiple
+Sessions can refer to the same task id and observe its latest run. Binding and
+run identity survive Host/plugin restart in the configured state directory.
+Uncertain runs require the existing CLI reconciliation; there is no blind retry.
+
+Owner-only Fetch routes run through the authenticated DSH Connection carrier.
+Browser requests cannot supply task roots, registry paths or Python commands.
+Plugin disposal releases routes, panel subscriptions and the bridge; independent
+workers and their journal remain recoverable. No cross-origin standalone-server
+port or local bearer token is exposed in the iframe.
+
+## Verification
+
+```bash
+node dsh-plugin-philharmonie/tests/plugin.test.mjs
+node dsh-plugin-philharmonie/build.mjs --check
+python3 concert-hall/tests/e2e_workbench.py  # optional Playwright + Chromium
+```
+
+The seven local plugin tests cover wire/config validation, explicit Host model
+mapping, real persistent bridge/runner decisions, multi-Session binding across
+restart, additive slot registration, closure-factory loading and lifecycle routes.
+They do not establish official DSH boot or native header interaction. The browser
+workflow exercises real standalone HTTP/compiler/runner behavior; its result and
+screenshots must be inspected separately. Keep the integration draft until the
+actual official profile install/load/native-header flow is verified.
+
+The separate remote Cordis branch adds agent tools and a global Tacet hook, not
+this UI. Its source and limitations are reviewed in `design/REMOTE_ALIGNMENT.md`;
+those tool/runtime capabilities have not been silently merged or advertised here.
+
+`Concert Hall browser` CI also installs the packed bundle into the pinned official
+DSH profile and exercises the real authenticated panel. The test intentionally
+does not claim native nonblank-Session header acceptance; that remains a separate
+gate even if the global-panel smoke passes.

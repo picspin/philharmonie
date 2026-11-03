@@ -140,3 +140,13 @@ Terminal completed/failed/cancelled runs are immutable; start a new run to retry
 a terminal score. Exit 0 means completed (or successful control/status request);
 uncompleted run/resume exits 2. Status JSON has ordered events suitable for a
 future Concert Hall adapter; this change does not claim DSH UI integration.
+
+## Upgrade from the initial runner revision
+
+Nested loops now require distinct metric paths. Rollback ignores abandoned nested
+transactions after their enclosing iteration has settled. Worker-owned supervised
+halls remain in the worker job group, so cancellation stops the actual hall
+before completion receipts permit file restoration. The runtime fingerprint
+changes with these fixes: finish or cancel existing runs using their original
+pinned checkout before upgrading. Do not rewrite a journal fingerprint to bypass
+the check.

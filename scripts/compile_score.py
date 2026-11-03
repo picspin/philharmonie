@@ -5,6 +5,7 @@ import argparse
 import copy
 import hashlib
 import json
+import math
 from pathlib import Path, PurePosixPath
 import sys
 import jsonschema
@@ -86,7 +87,7 @@ def compile_program(program, registry=None, draft=False):
             if route['resolution'] == 'unresolved':
                 diagnostics.append(f'{name}: unresolved tier {route["tier"]}')
     count = 0
-    def walk(node, scope=None, depth=0):
+    def walk(node, scope=None, depth=0, metric_stack=()):
         nonlocal count
         count += 1
         if count > 1024 or depth > 16:
@@ -103,7 +104,7 @@ def compile_program(program, registry=None, draft=False):
             elif not node.get('prompt', '').strip() or 'argv' in node:
                 raise ValueError('agent movement requires prompt only')
             if c['executor']=='agent' and c['routing']['assigned_model']:
-                envelope=dict(movement=node['id'],sender=dict(section=c['section'],model=c['routing']['assigned_model']),cue='VARIATION_REQUESTED',ground_bass_ref=','.join(protected),isolation=c['isolation'],allowed_toolsets=c['allowed_toolsets'],tacet_paths=protected,budget=dict(dynamic_mark='ffff' if c['section']=='heavy_brass' else 'p',timeout_sec=1),payload=dict(summary=node['prompt']))
+                envelope=dict(movement=node['id'],sender=dict(section=c['section'],model=c['routing']['assigned_model']),cue='VARIATION_REQUESTED',ground_bass_ref=','.join(protected),isolation=c['isolation'],allowed_toolsets=c['allowed_toolsets'],tacet_paths=protected,budget=dict(dynamic_mark='ffff' if c['section']=='heavy_brass' else 'p',timeout_sec=max(1,math.ceil(node['timeout_sec']))),payload=dict(summary=node['prompt']))
                 verdict=evaluate(envelope)
                 if verdict['audition']!='pass':
                     raise ValueError('; '.join(verdict['reasons']))
@@ -120,7 +121,7 @@ def compile_program(program, registry=None, draft=False):
             ids = [x['id'] for x in node['children']]
             if len(ids) != len(set(ids)):
                 raise ValueError('duplicate sibling node id')
-            branches = [walk(x, scope, depth+1) for x in node['children']]
+            branches = [walk(x, scope, depth+1, metric_stack) for x in node['children']]
             if kind == 'parallel':
                 for i, branch in enumerate(branches):
                     if any(overlaps(a,b) for other in branches[:i] for a in branch for b in other):
@@ -132,12 +133,14 @@ def compile_program(program, registry=None, draft=False):
         else:
             edits = set(node['edit_paths'])
             metric = node['metric']['path']
+            if metric in metric_stack:
+                raise ValueError('nested loops must use distinct metric paths')
             if any(overlaps(metric,p) for p in edits):
                 raise ValueError('metric must be separate from candidate files')
             if scope is not None and not edits <= scope:
                 raise ValueError('nested loop edit_paths must be a subset of parent edit_paths')
-            baseline_paths = walk(node['baseline'], edits | {metric}, depth+1)
-            body_paths = walk(node['body'], edits | {metric}, depth+1)
+            baseline_paths = walk(node['baseline'], edits | {metric}, depth+1, metric_stack+(metric,))
+            body_paths = walk(node['body'], edits | {metric}, depth+1, metric_stack+(metric,))
             if metric not in baseline_paths or metric not in body_paths:
                 raise ValueError('baseline and body must declare metric output')
             paths = edits | {metric} | baseline_paths | body_paths
