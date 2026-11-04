@@ -264,3 +264,15 @@ philharmonie/
 [MIT](LICENSE) © 2026 Xiaolei `<zxl1412@gmail.com>`
 
 You may test this hall with any LLM API or agent. Keep Tacet heteronomous: a mute chair must not receive a pen.
+
+## Executable composite scores / 复合曲谱与 Bach 持久化变奏
+
+Version 2 compiles task-driven chapters, sequences, parallel groups and bounded
+progressive loops into a sealed plan. A SQLite runner checkpoints keep/discard/crash
+decisions and resumes through detached worker receipts without blindly replaying
+uncertain jobs. Existing v1 scores remain unchanged.
+
+See [the runnable search example](examples/bach-search/program.json) and
+[compiler, loop and recovery guide](references/composite-runner.md). The fixture
+needs no model/API; agent Chairs use the existing capability-tier resolver and
+supervised hall adapters.

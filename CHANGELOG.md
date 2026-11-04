@@ -4,6 +4,10 @@ Dates are UTC. Counts are the contract tests in `scripts/test_*.sh`.
 
 ## Unreleased
 
+- Executable v2 composite score compiler: chapter DAGs, recursive sequence/parallel/loop forms, Chair-level tier bindings and sealed plans.
+- Persistent Bach variation runner: SQLite best-file checkpoints, strict keep/discard/crash decisions, worker receipts, pause/cancel/reconciliation and bounded retries.
+- Offline search-optimization example and 36 compiler/runner tests, including coordinator SIGKILL recovery.
+
 - Concert Hall state aggregation and ASCII/ANSI terminal board: one-line ribbon,
   expanded movement/dependency/Tacet views, JSON snapshots and watch mode.
 - Supervised spawn logs gain optional score/movement/run labels and per-child
