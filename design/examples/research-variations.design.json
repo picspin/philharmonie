@@ -1,0 +1,312 @@
+{
+  "document_kind": "philharmonie.program.design",
+  "executable": false,
+  "note": "Illustrative bounded experiment composition. No experiment or measured result is included.",
+  "task": {
+    "task_id": "task-research",
+    "goal": "Improve validation bits per byte under a fixed, versioned experimental protocol.",
+    "task_family": "ai4s",
+    "taste": {
+      "guidance": [
+        "reproducible experiments",
+        "prefer simpler candidates under the declared comparison rubric"
+      ]
+    },
+    "workspace_binding": null
+  },
+  "protocol": {
+    "editable_paths": [
+      "train.py"
+    ],
+    "ground_bass": [
+      "prepare.py",
+      "dataset-identity",
+      "tokenizer-identity",
+      "comparison-policy"
+    ],
+    "metric": {
+      "name": "val_bpb",
+      "direction": "min",
+      "valid_status": "completed",
+      "source": "versioned evaluator artifact"
+    },
+    "baseline_artifact": null,
+    "resource_binding": null,
+    "training_budget_sec": 300,
+    "job_timeout_sec": 600,
+    "comparison_cohort": [
+      "evaluator_version",
+      "dataset_identity",
+      "hardware_identity",
+      "protocol_revision"
+    ],
+    "invalid_metric_policy": "crash/timeout/missing metric is not ranked; crash sentinel zero is normalized to null"
+  },
+  "score": {
+    "score_id": "research-variations",
+    "revision": "draft-1",
+    "chapters": [
+      {
+        "chapter_id": "protocol",
+        "form": "mozart_sonata",
+        "depends_on": [],
+        "body": {
+          "kind": "sequence",
+          "movements": [
+            {
+              "movement_id": "lock-protocol",
+              "chairs": [
+                "protocol.oboe"
+              ],
+              "inputs": [],
+              "outputs": [
+                "protocol.json"
+              ],
+              "exit_gate": "protocol_reviewed"
+            }
+          ]
+        }
+      },
+      {
+        "chapter_id": "baseline",
+        "form": "mozart_sonata",
+        "depends_on": [
+          "protocol"
+        ],
+        "body": {
+          "kind": "sequence",
+          "movements": [
+            {
+              "movement_id": "measure-baseline",
+              "chairs": [
+                "experiment.snare"
+              ],
+              "inputs": [
+                "protocol.json"
+              ],
+              "outputs": [
+                "baseline.json",
+                "baseline.log"
+              ],
+              "exit_gate": "baseline_valid"
+            }
+          ]
+        }
+      },
+      {
+        "chapter_id": "variations",
+        "form": "brahms_variation",
+        "depends_on": [
+          "baseline"
+        ],
+        "body": {
+          "kind": "bounded_loop",
+          "loop_id": "research-loop",
+          "limits": {
+            "max_iterations": 20,
+            "max_wall_sec": 14400,
+            "max_consecutive_crashes": 3
+          },
+          "termination": [
+            "budget_exhausted",
+            "manual_pause_or_cancel",
+            "protocol_invalidation"
+          ],
+          "body": {
+            "kind": "sequence",
+            "movements": [
+              {
+                "movement_id": "propose",
+                "chairs": [
+                  "protocol.oboe"
+                ],
+                "inputs": [
+                  "baseline.json",
+                  "experiment-ledger"
+                ],
+                "outputs": [
+                  "hypothesis.json"
+                ],
+                "exit_gate": "hypothesis_scoped"
+              },
+              {
+                "movement_id": "patch",
+                "chairs": [
+                  "research.impl"
+                ],
+                "inputs": [
+                  "hypothesis.json"
+                ],
+                "outputs": [
+                  "candidate.patch"
+                ],
+                "exit_gate": "candidate_preflight_passed"
+              },
+              {
+                "movement_id": "experiment",
+                "chairs": [
+                  "experiment.snare"
+                ],
+                "inputs": [
+                  "candidate.patch",
+                  "protocol.json"
+                ],
+                "outputs": [
+                  "trial.json",
+                  "trial.log"
+                ],
+                "exit_gate": "trial_outcome_recorded"
+              },
+              {
+                "movement_id": "judge",
+                "chairs": [
+                  "judge.violin2"
+                ],
+                "inputs": [
+                  "trial.json",
+                  "baseline.json"
+                ],
+                "outputs": [
+                  "decision.json"
+                ],
+                "exit_gate": "outcome_classified"
+              },
+              {
+                "movement_id": "checkpoint",
+                "chairs": [
+                  "control.conductor"
+                ],
+                "inputs": [
+                  "decision.json"
+                ],
+                "outputs": [
+                  "experiment-checkpoint"
+                ],
+                "exit_gate": "keep_or_discard_recorded"
+              }
+            ]
+          },
+          "decision_outcomes": [
+            "keep",
+            "discard",
+            "crash"
+          ],
+          "retry_policy_ref": "separate-attempt-policy",
+          "checkpoint_fields": [
+            "iteration_id",
+            "plan_revision",
+            "baseline_commit",
+            "candidate_commit",
+            "metric_artifact",
+            "decision",
+            "next_iteration"
+          ],
+          "decision_policy": "Valid trials compare under the frozen protocol; crash/timeout/missing metrics skip ranking and enter the declared retry/recording policy.",
+          "inputs": [
+            "baseline.json",
+            "protocol.json"
+          ],
+          "outputs": [
+            "best-valid-candidate",
+            "experiment-ledger"
+          ],
+          "initial_state": {
+            "best-valid-candidate": "baseline.json",
+            "experiment-ledger": []
+          }
+        }
+      },
+      {
+        "chapter_id": "validation",
+        "form": "mozart_sonata",
+        "depends_on": [
+          "variations"
+        ],
+        "body": {
+          "kind": "sequence",
+          "movements": [
+            {
+              "movement_id": "reproduce",
+              "chairs": [
+                "experiment.snare"
+              ],
+              "inputs": [
+                "best-valid-candidate",
+                "protocol.json"
+              ],
+              "outputs": [
+                "reproduction.json"
+              ],
+              "exit_gate": "independent_validation_passed"
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "chairs": [
+    {
+      "chair_id": "protocol.oboe",
+      "section": "oboe",
+      "agent_template_ref": "protocol-and-hypothesis-writer",
+      "runtime_binding": null,
+      "model_binding": {
+        "tier": "contract-precise",
+        "model_id": null
+      },
+      "isolation": "shared"
+    },
+    {
+      "chair_id": "research.impl",
+      "section": "violin_1",
+      "agent_template_ref": "scoped-experiment-implementer",
+      "runtime_binding": null,
+      "model_binding": {
+        "tier": "heavy-code",
+        "model_id": null
+      },
+      "isolation": "worktree"
+    },
+    {
+      "chair_id": "experiment.snare",
+      "section": "snare_drum",
+      "agent_template_ref": "local-experiment-executor",
+      "runtime_binding": null,
+      "model_binding": {
+        "tier": "0-token-shell",
+        "model_id": null
+      },
+      "isolation": "shared"
+    },
+    {
+      "chair_id": "judge.violin2",
+      "section": "violin_2",
+      "agent_template_ref": "experimental-comparison-reviewer",
+      "runtime_binding": null,
+      "model_binding": {
+        "tier": "review-critique",
+        "model_id": null
+      },
+      "isolation": "shared"
+    },
+    {
+      "chair_id": "control.conductor",
+      "section": "conductor",
+      "agent_template_ref": "checkpoint-controller",
+      "runtime_binding": null,
+      "model_binding": {
+        "tier": "high-reasoning-flash",
+        "model_id": null
+      },
+      "isolation": "shared"
+    }
+  ],
+  "unresolved_requirements": [
+    "GPU/runtime lease",
+    "frozen evaluator and data identities",
+    "baseline",
+    "trusted metric extractor",
+    "separate LLM and compute budgets",
+    "durable loop runner"
+  ]
+}

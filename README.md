@@ -159,6 +159,11 @@ host transport. `--root TARGET` inspects the Snare command inventory without run
 
 ---
 
+The [task-driven Concert Hall RFC](design/CONCERT_HALL_V2.zh.md) describes the next
+authoring layer: composite chapters, multiple chairs per Section, architecture
+packs and bounded research loops. It is a proposed design, separate from the
+currently implemented v1 planner and monitor.
+
 ## Envelope / 信封
 
 Schema: [`templates/envelope.json`](templates/envelope.json).
