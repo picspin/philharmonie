@@ -4,6 +4,14 @@ Dates are UTC. Counts are the contract tests in `scripts/test_*.sh`.
 
 ## Unreleased
 
+- Concert Hall state aggregation and ASCII/ANSI terminal board: one-line ribbon,
+  expanded movement/dependency/Tacet views, JSON snapshots and watch mode.
+- Supervised spawn logs gain optional score/movement/run labels and per-child
+  execution IDs; launch failures close their observed attempts. Observation
+  metadata preserves audition, ticket, tool and hall enforcement.
+- Snare command inventory is shown separately from unobserved test outcomes;
+  malformed/conflicting observations degrade the board rather than imply success.
+
 - Concert Hall planning: versioned score and host inventory schemas; deterministic
   composer forms, movement dependencies, explicit Tacet, isolation locks and turn budgets.
 - Capability-tier resolution: enabled host inventory, section/environment pins,

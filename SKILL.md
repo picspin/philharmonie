@@ -12,6 +12,7 @@ Token economy + structural correctness: peak expression with minimal sounding bo
 
 | Part | Load when |
 |------|-----------|
+| `scripts/concert_hall.py` | State snapshots + TUI; `scripts/test_concert_hall.sh`; `references/concert-hall.md` |
 | `templates/score-schema.json` | Concert Hall timeline + dependency plan; `templates/hall-registry-schema.json` host inventory |
 | `scripts/score_composer.py` | Compose/validate/resolve tiers; `scripts/test_score_composer.sh`; `references/score-composer.md` |
 | `templates/envelope.json` | Isolation contract. No protocol bus. |

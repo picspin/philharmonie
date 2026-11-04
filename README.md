@@ -130,11 +130,32 @@ bash scripts/test_score_composer.sh
 ```
 
 The JSON is the shared input for the upcoming TUI and DSH Org-Graph ribbon.
-This iteration supplies planning and resolution; live progress and DSH UI
+A read-only terminal board now aggregates supervised execution events; DSH UI
 mounts come later. See [the composer contract](references/score-composer.md),
 [example score](examples/concert-score.json), and the
 [disabled inventory template](examples/hall-registry.json).
 Validation/resolution never grants execution admission.
+
+---
+
+## Concert Hall monitor / 终端看板
+
+```bash
+# Plan-only board and single-line ribbon; no model needed.
+python3 scripts/concert_hall.py --score examples/concert-score.json
+python3 scripts/concert_hall.py --score examples/concert-score.json --collapsed
+
+# Synthetic failure demo; JSON output is available with --json.
+python3 scripts/concert_hall.py --score examples/concert-score.json \
+  --events examples/concert-events.jsonl --run-id demo-concert
+```
+
+Tag real supervised spawns with `--score-id`, `--movement-index`, and `--run-id`
+(or use a ticket run ID), then read their `--jsonl` log with `--watch`. Movement
+states, dependency edges, active/Tacet seats, tier/model assignments and elapsed
+execution times share one [state-service contract](references/concert-hall.md).
+Token usage and per-rung check results stay unknown until observed by a suitable
+host transport. `--root TARGET` inspects the Snare command inventory without running it.
 
 ---
 
