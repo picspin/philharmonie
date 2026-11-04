@@ -12,6 +12,8 @@ Token economy + structural correctness: peak expression with minimal sounding bo
 
 | Part | Load when |
 |------|-----------|
+| `templates/score-schema.json` | Concert Hall timeline + dependency plan; `templates/hall-registry-schema.json` host inventory |
+| `scripts/score_composer.py` | Compose/validate/resolve tiers; `scripts/test_score_composer.sh`; `references/score-composer.md` |
 | `templates/envelope.json` | Isolation contract. No protocol bus. |
 | `references/composer-scores.md` | Cheap-chair map, named forms, **fugue worktree** |
 | `references/tacet-guard.md` | Opt-in `pre_tool_call` latch |

@@ -1,0 +1,188 @@
+{
+  "schema_version": 1,
+  "score_id": "score-cest-boundary-example",
+  "style": "beethoven_symphony",
+  "task_type": "ai4s_kernel_invariant",
+  "summary": "Fix CEST pool exchange equation fail-closed boundary",
+  "movements": [
+    {
+      "index": 1,
+      "name": "Motive (Overture)",
+      "lead_section": "oboe",
+      "active_sections": [
+        "oboe"
+      ],
+      "tacet_sections": [
+        "bassoon",
+        "cello",
+        "conductor",
+        "contrabass",
+        "cymbals",
+        "flute",
+        "harp",
+        "heavy_brass",
+        "horn",
+        "organ",
+        "snare_drum",
+        "trumpet",
+        "viola",
+        "violin_1",
+        "violin_2"
+      ],
+      "isolation": "shared",
+      "cue_on_exit": "SPEC_LOCKED",
+      "deliverable": "SPEC.md + invariant test stubs",
+      "max_turns": 3,
+      "circuit_breaker": false,
+      "depends_on": []
+    },
+    {
+      "index": 2,
+      "name": "Development (Variation)",
+      "lead_section": "violin_1",
+      "active_sections": [
+        "violin_1"
+      ],
+      "tacet_sections": [
+        "bassoon",
+        "cello",
+        "conductor",
+        "contrabass",
+        "cymbals",
+        "flute",
+        "harp",
+        "heavy_brass",
+        "horn",
+        "oboe",
+        "organ",
+        "snare_drum",
+        "trumpet",
+        "viola",
+        "violin_2"
+      ],
+      "isolation": "worktree",
+      "cue_on_exit": "PATCH_READY",
+      "deliverable": "implementation.patch",
+      "max_turns": 8,
+      "circuit_breaker": false,
+      "depends_on": [
+        {
+          "movement": 1,
+          "cue": "SPEC_LOCKED",
+          "artifact": "SPEC.md + invariant test stubs"
+        }
+      ]
+    },
+    {
+      "index": 3,
+      "name": "Counterpoint",
+      "lead_section": "violin_2",
+      "active_sections": [
+        "violin_2"
+      ],
+      "tacet_sections": [
+        "bassoon",
+        "cello",
+        "conductor",
+        "contrabass",
+        "cymbals",
+        "flute",
+        "harp",
+        "heavy_brass",
+        "horn",
+        "oboe",
+        "organ",
+        "snare_drum",
+        "trumpet",
+        "viola",
+        "violin_1"
+      ],
+      "isolation": "shared",
+      "cue_on_exit": "REVIEW_COMPLETE",
+      "deliverable": "review.md",
+      "max_turns": 3,
+      "circuit_breaker": false,
+      "depends_on": [
+        {
+          "movement": 2,
+          "cue": "PATCH_READY",
+          "artifact": "implementation.patch"
+        }
+      ]
+    },
+    {
+      "index": 4,
+      "name": "Tutti",
+      "lead_section": "snare_drum",
+      "active_sections": [
+        "snare_drum"
+      ],
+      "tacet_sections": [
+        "bassoon",
+        "cello",
+        "conductor",
+        "contrabass",
+        "cymbals",
+        "flute",
+        "harp",
+        "heavy_brass",
+        "horn",
+        "oboe",
+        "organ",
+        "trumpet",
+        "viola",
+        "violin_1",
+        "violin_2"
+      ],
+      "isolation": "shared",
+      "cue_on_exit": "TEST_PASSED",
+      "deliverable": "4-rung verification log",
+      "max_turns": 1,
+      "circuit_breaker": true,
+      "depends_on": [
+        {
+          "movement": 3,
+          "cue": "REVIEW_COMPLETE",
+          "artifact": "review.md"
+        }
+      ]
+    }
+  ],
+  "section_routing": {
+    "conductor": {
+      "tier": "high-reasoning-flash",
+      "assigned_model": null,
+      "resolution": "unresolved",
+      "resolved_tier": null,
+      "source": "none"
+    },
+    "oboe": {
+      "tier": "contract-precise",
+      "assigned_model": null,
+      "resolution": "unresolved",
+      "resolved_tier": null,
+      "source": "none"
+    },
+    "snare_drum": {
+      "tier": "0-token-shell",
+      "assigned_model": "local-bash",
+      "resolution": "local",
+      "resolved_tier": "0-token-shell",
+      "source": "local-shell"
+    },
+    "violin_1": {
+      "tier": "heavy-code",
+      "assigned_model": null,
+      "resolution": "unresolved",
+      "resolved_tier": null,
+      "source": "none"
+    },
+    "violin_2": {
+      "tier": "review-critique",
+      "assigned_model": null,
+      "resolution": "unresolved",
+      "resolved_tier": null,
+      "source": "none"
+    }
+  }
+}

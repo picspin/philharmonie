@@ -12,6 +12,7 @@ bash scripts/test_snare_score.sh      # 27
 bash scripts/test_spawn_chair.sh      # 80
 bash scripts/test_tacet_guard.sh      # 16
 bash scripts/test_halls.sh            # 39
+bash scripts/test_score_composer.sh  # Concert Hall plan + routing
 python3 scripts/garden_score.py       # Katalog ↔ parts, SKILL.md ≤ 140
 ```
 
@@ -21,6 +22,7 @@ No API key. No LLM. If garden fails, you either dropped a backtick path from `SK
 
 | Want | Where | Do not |
 |------|-------|--------|
+| Score / tier routing | `scripts/score_composer.py` + `scripts/test_score_composer.sh` + score/registry schemas | Model IDs in section-contract; implicit admission |
 | Spawn / ticket / lock-bass | `scripts/spawn_chair.py` + `scripts/test_spawn_chair.sh` | New hall |
 | Audition / extra keys | `scripts/audition_chair.py` + `templates/envelope.json` | `protocol`, `agent_id`, `compaction_tier` |
 | Katalog line | `SKILL.md` (budget 140) | Pasting wave physics back onto the catalog page |
