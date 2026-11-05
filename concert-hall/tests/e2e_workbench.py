@@ -42,6 +42,8 @@ class WorkbenchBrowserTests(unittest.TestCase):
                     # Make the variation long enough to exercise pause/resume.
                     source = json.loads(page.locator('#source').input_value())
                     source['score']['chapters'][0]['body']['body']['children'][0]['argv'][2] = 'import time;time.sleep(.3);' + source['score']['chapters'][0]['body']['body']['children'][0]['argv'][2]
+                    page.locator('details.source > summary').click()
+                    expect(page.locator('#source')).to_be_visible()
                     page.locator('#source').fill(json.dumps(source))
                     page.get_by_role('button',name='应用 JSON',exact=True).click()
                     expect(page.locator('#source')).to_have_value(json.dumps(source,ensure_ascii=False,indent=2))

@@ -29,5 +29,5 @@ function install(React,ctx) {
   return {select};
 }
 
-return {inject,apply:(ctx)=>install(require('react'),ctx)};
+return {inject,apply:(ctx)=>{install(require('react'),ctx);}};
 }});

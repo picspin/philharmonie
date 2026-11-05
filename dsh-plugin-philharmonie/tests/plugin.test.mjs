@@ -61,7 +61,7 @@ test('official additive slots register and dispose without replacing header or c
 test('packaged client speaks the official closure-factory protocol and shares React',async()=>{
  let row;vm.runInNewContext(await readFile(new URL('../client.js',import.meta.url),'utf8'),{window:{__ModuleLoader__:{load:x=>row=x}}});
  assert.equal(row.id,'dsh-plugin-philharmonie');let requested;const face=row.factory(id=>{requested=id;return {};});
- const ctx={slots:{inject:()=>{}},effect:()=>{}};face.apply(ctx);assert.equal(requested,'react');assert.deepEqual([...face.inject],['slots','layout']);
+ const ctx={slots:{inject:()=>{}},effect:()=>{}};assert.equal(face.apply(ctx),undefined,'Cordis apply must not return the private controller object');assert.equal(requested,'react');assert.deepEqual([...face.inject],['slots','layout']);
 });
 test('frame assets are document-relative and Host routes have owned lifecycle disposers',async()=>{
  const html=await frameHtml();assert.match(html,/src="frame.mjs"/);assert.match(html,/href="styles.css"/);assert.doesNotMatch(html,/__TOKEN__/);
