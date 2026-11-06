@@ -21,6 +21,30 @@ from playwright.sync_api import sync_playwright, expect, TimeoutError as Playwri
 
 REPO = Path(__file__).resolve().parents[2]
 
+def click_with_native_setup(page, target, artifacts, handled):
+    """Use supported first-run buttons; never bypass a modal or enter credentials."""
+    for _ in range(4):
+        try:
+            target.click(trial=True,timeout=3000)
+            target.click(timeout=5000)
+            return
+        except PlaywrightTimeout:
+            dialog=page.get_by_role('dialog').last
+            expect(dialog).to_be_visible()
+            title=dialog.get_attribute('aria-label') or ''
+            handled.append(title)
+            page.screenshot(path=str(artifacts/f'dsh-dialog-{len(handled)}.png'),full_page=True)
+            exact_dialog=page.get_by_role('dialog',name=title,exact=True)
+            if title in ('Preview Notice','预览版说明'):
+                exact_dialog.get_by_role('button',name=re.compile(r'^(Continue|继续)$')).click()
+            elif title in ('Add an API key to get started','添加一个 API Key 开始使用'):
+                exact_dialog.get_by_role('button',name=re.compile(r'^(Configure later|稍后配置)$')).click()
+            else:
+                # Only implicit dismissal for other optional native dialogs.
+                page.keyboard.press('Escape')
+            expect(exact_dialog).not_to_be_visible()
+    raise AssertionError('native setup did not settle after four normal interactions')
+
 class OfficialDshBrowserTests(unittest.TestCase):
     def test_packed_bundle_in_official_profile(self):
         binary = os.environ.get('DSH_BIN')
@@ -65,22 +89,13 @@ class OfficialDshBrowserTests(unittest.TestCase):
                     page=context.new_page();errors=[];dismissed_dialogs=[];page.on('pageerror',lambda error:errors.append(str(error)))
                     try:
                         page.goto(launch,wait_until='domcontentloaded')
-                        page.get_by_role('button',name='Concert Hall',exact=True).click(timeout=60000)
+                        entry=page.get_by_role('button',name='Concert Hall',exact=True)
+                        expect(entry).to_be_visible(timeout=60000)
+                        click_with_native_setup(page,entry,artifacts,dismissed_dialogs)
                         frame=page.frame_locator('iframe[title="Philharmonie Concert Hall"]')
                         expect(frame.locator('#task')).to_have_value('Improve sorted search while retaining first-match semantics',timeout=30000)
-                        # A fresh official profile may show a dismissible native
-                        # dialog after the panel has mounted. Use normal keyboard
-                        # dismissal; never force-click through its mask.
-                        try:
-                            frame.locator('#compile').click(trial=True,timeout=3000)
-                        except PlaywrightTimeout:
-                            dialog=page.get_by_role('dialog').last
-                            expect(dialog).to_be_visible()
-                            dismissed_dialogs.append(dialog.get_attribute('aria-label'))
-                            page.screenshot(path=str(artifacts/'dsh-initial-dialog.png'),full_page=True)
-                            page.keyboard.press('Escape')
-                            expect(dialog).not_to_be_visible()
-                        frame.locator('#compile').click();expect(frame.locator('#compile-result')).to_contain_text('编译通过')
+                        click_with_native_setup(page,frame.locator('#compile'),artifacts,dismissed_dialogs)
+                        expect(frame.locator('#compile-result')).to_contain_text('编译通过')
                         frame.locator('#consent').check();frame.locator('#start').click()
                         expect(frame.locator('#run-state')).to_have_text('completed',timeout=30000)
                         expect(frame.locator('.decision.keep')).to_have_count(2)
