@@ -27,7 +27,12 @@ def timestamp(value):
 def read_events(path):
     """A partial append or corrupt line degrades the snapshot, never hides it."""
     events, errors = [], []
-    for number, line in enumerate(Path(path).read_text(encoding='utf-8').splitlines(), 1):
+    for number, raw in enumerate(Path(path).read_bytes().splitlines(), 1):
+        try:
+            line = raw.decode('utf-8')
+        except UnicodeDecodeError as exc:
+            errors.append(f'event line {number}: invalid UTF-8: {exc}')
+            continue
         if not line.strip():
             continue
         try:
@@ -49,6 +54,8 @@ def snapshot(score, events, run_id, *, root=None, now=None, input_errors=()):
     errors = validate_score(score)
     if errors:
         raise ValueError('; '.join(errors))
+    if run_id is not None and (not isinstance(run_id, str) or not run_id.strip()):
+        raise ValueError('run_id must be nonblank')
     if events and not run_id:
         raise ValueError('events require an explicit run_id')
     now = now or datetime.now(timezone.utc)
@@ -134,7 +141,7 @@ def snapshot(score, events, run_id, *, root=None, now=None, input_errors=()):
     movements = []
     for movement in score['movements']:
         chairs = []
-        dependencies = [movements[d['movement'] - 1] for d in movement['depends_on']]
+        dependencies = [movements[int(d['movement']) - 1] for d in movement['depends_on']]
         waiting = any(d['state'] != 'success' for d in dependencies)
         for section in movement['active_sections']:
             routing = score['section_routing'][section]
@@ -151,7 +158,7 @@ def snapshot(score, events, run_id, *, root=None, now=None, input_errors=()):
                     errors.append(f'movement {movement["index"]}: execution observed before dependencies succeeded')
                 else:
                     for dependency in movement['depends_on']:
-                        previous = score['movements'][dependency['movement'] - 1]
+                        previous = score['movements'][int(dependency['movement']) - 1]
                         for previous_section in previous['active_sections']:
                             prior = seats.get((previous['index'], previous_section), {}).get('exit')
                             if prior and timestamp(prior['ts']) > timestamp(start['ts']):
@@ -162,7 +169,7 @@ def snapshot(score, events, run_id, *, root=None, now=None, input_errors=()):
                                execution_id=execution_id, tokens=0 if section in {'snare_drum', 'cymbals'} else None))
         states = {c['state'] for c in chairs}
         state = next((s for s in ('failed', 'timeout', 'playing', 'waiting', 'unresolved', 'pending') if s in states), 'success')
-        movements.append(dict(index=movement['index'], name=movement['name'], state=state,
+        movements.append(dict(index=int(movement['index']), name=movement['name'], state=state,
                               lead_section=movement['lead_section'], chairs=chairs,
                               tacet_sections=movement['tacet_sections'], depends_on=movement['depends_on'],
                               isolation=movement['isolation'], max_turns=movement['max_turns'],
@@ -263,6 +270,8 @@ def main(argv=None):
     parser.add_argument('--interval', type=float, default=1.0)
     parser.add_argument('--frames', type=int, help='Stop watch after this many snapshots')
     args = parser.parse_args(argv)
+    if args.run_id is not None and not args.run_id.strip():
+        parser.error('--run-id must be nonblank')
     if args.events and not args.run_id:
         parser.error('--events requires --run-id')
     if not 0.2 <= args.interval <= 60 or (args.frames is not None and args.frames < 1):
@@ -279,7 +288,7 @@ def main(argv=None):
                     color=args.color == 'always' or (args.color == 'auto' and sys.stdout.isatty()))
             except (ValueError, OSError) as exc:
                 code = 2
-                output = json.dumps({'ok': False, 'admit': False, 'errors': [str(exc)]}) if args.json else fit(f'Concert Hall unavailable: {exc}', max(40, min(240, args.width)))
+                output = json.dumps({'schema_version': 1, 'run_id': args.run_id, 'ok': False, 'admit': False, 'errors': [str(exc)]}) if args.json else fit(f'Concert Hall unavailable: {exc}', max(40, min(240, args.width)))
             if args.watch and sys.stdout.isatty() and not args.json:
                 sys.stdout.write('\x1b[2J\x1b[H')
             print(output, flush=True)

@@ -1,0 +1,7 @@
+- insert:
+    - id: philharmonie
+      name: dsh-plugin-philharmonie
+      config:
+        # Set an absolute owner-controlled state path in your profile override.
+        state: /REPLACE/WITH/ABSOLUTE/philharmonie-state
+        demo: true

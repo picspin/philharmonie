@@ -13,6 +13,12 @@ def program():
     return dict(schema_version=2,task=dict(id='task',summary='test'),score=dict(id='suite',revision='1',chapters=[dict(id='first',name='First',form='custom',depends_on=[],body=movement())]),chairs={'local':dict(section='snare_drum',executor='command',allowed_toolsets=['terminal','file'],isolation='shared')},ground_bass=['SPEC.md'],budget=dict(max_wall_sec=60))
 
 class CompilerTests(unittest.TestCase):
+    def test_nested_loop_metrics_must_be_distinct(self):
+        p=program();metric=movement('metric');metric['outputs']=['metric.json']
+        inner=dict(kind='loop',id='inner',baseline=copy.deepcopy(metric),body=copy.deepcopy(metric),edit_paths=['candidate.py'],metric=dict(path='metric.json',key='loss',direction='min'),limits=dict(max_iterations=1,max_wall_sec=10))
+        p['score']['chapters'][0]['body']=dict(kind='loop',id='outer',baseline=copy.deepcopy(metric),body=inner,edit_paths=['candidate.py'],metric=dict(path='metric.json',key='loss',direction='min'),limits=dict(max_iterations=1,max_wall_sec=10))
+        with self.assertRaisesRegex(ValueError,'distinct metric'):compiler.compile_program(p)
+
     def test_deterministic_sealed_plan(self):
         a=compiler.compile_program(program());b=compiler.compile_program(program())
         self.assertEqual(a,b);self.assertTrue(a['ready']);self.assertFalse(a['admit']);compiler.validate_plan(a)

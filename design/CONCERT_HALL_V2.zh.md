@@ -149,3 +149,5 @@ flowchart TD
 前两步现有 PR 提供底座，不代表新的编辑器、复合编译器或持久化 Loop 已完成。
 两份 JSON 位于 `design/examples/`，只表达领域关系，明确标记为不可执行。
 完整源码来源与验收场景列在 [技术设计](CONCERT_HALL_V2.md#sources)。
+
+示例范围说明：章节表展示可选的配器，设计 JSON 使用更小的席位集合。JSON 的章节依赖已显式列出；有限 sequence/parallel 组的内部顺序由组结构表达，跨组 movement 依赖在该不可执行示例中省略，须由可执行格式规定。英文设计见 [CONCERT_HALL_V2.md](CONCERT_HALL_V2.md)。

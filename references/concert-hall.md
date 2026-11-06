@@ -100,3 +100,5 @@ DSH Profile export, plugin registration/mount points, native WebUI controls and
 per-rung/usage telemetry are the next integration seams; no DSH API is assumed.
 
 Verify: `bash scripts/test_concert_hall.sh` plus the existing spawn/garden suites.
+
+Event files must retain append order; exit-before-spawn is corruption. A `paused` v1 snapshot means an already-started score has no active movement; it does not imply an operator pause. Watch mode rereads the log and is intended for bounded logs, not unbounded telemetry streams.

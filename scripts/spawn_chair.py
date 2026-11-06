@@ -456,13 +456,17 @@ def supervise(
             "run_id": run_id,
         },
     )
+    # Only a session leader created by the durable worker can opt in.
+    # Standalone supervised invocations retain their own child process group.
+    worker_group = (env.get('PHIL_WORKER_OWNED_GROUP') == '1'
+                    and os.getsid(0) == os.getpid() and os.getpgrp() == os.getpid())
     try:
         proc = subprocess.Popen(
             list(cmd),
             env=env,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
-            start_new_session=True,
+            start_new_session=not worker_group,
         )
     except OSError as exc:
         _append_jsonl(jsonl_path, dict(metadata, event="exit", ts=_now(), run_id=run_id,
@@ -474,7 +478,7 @@ def supervise(
         out_b, err_b = proc.communicate(timeout=timeout_sec)
     except subprocess.TimeoutExpired:
         try:
-            os.killpg(proc.pid, signal.SIGKILL)
+            os.killpg(os.getpgrp() if worker_group else proc.pid, signal.SIGKILL)
         except OSError:
             proc.kill()
         out_b, err_b = proc.communicate()

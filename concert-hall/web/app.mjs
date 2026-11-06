@@ -2,16 +2,17 @@ import {esc, architectureChoices, clone, chapter, fresh} from './composer.mjs';
 const $ = id => document.getElementById(id);
 const token = document.querySelector('meta[name="hall-token"]').content;
 const forms = {custom:'自由序曲',mozart_sonata:'Mozart · Sonata',beethoven_symphony:'Beethoven · Symphony',bach_fugue:'Bach · Fugue',bach_variation:'Bach · Progressive variation',brahms_variation:'Brahms · Variation'};
-let config, program, compiled = null, revision = 0, runId = '', busy = false;
+let config, program, compiled = null, revision = 0, runId = '', busy = false, sourceDirty = false, runStatus = null;
 function error(message='') { $('error').hidden = !message; $('error').textContent = message; }
 async function api(path, body) {
+  if(globalThis.philharmonieTransport)return globalThis.philharmonieTransport(path,body);
   const response = await fetch('/api/'+path, {headers:{'X-Hall-Token':token,...(body?{'Content-Type':'application/json'}:{})},method:body?'POST':'GET',body:body?JSON.stringify(body):undefined});
   const data = await response.json();
   if (!response.ok) throw new Error(data.error || `HTTP ${response.status}`);
   return data;
 }
 function changed() {
-  revision++; compiled = null; $('consent').checked = false;
+  revision++; sourceDirty=false; compiled = null; $('consent').checked = false;
   $('compile-result').textContent = '有未编译的修改。';
   $('source').value = JSON.stringify(program,null,2); renderGraph(); renderStart();
 }
@@ -49,12 +50,19 @@ function renderRoster() {
   }).join('');
   $('roster').querySelectorAll('select').forEach(select=>select.onchange=()=>{const c=program.chairs[select.dataset.chair];if(select.value)c.model=select.value;else delete c.model;changed();});
 }
-function renderStart() {$('start').disabled=busy||!compiled?.ready||!$('consent').checked;}
+function renderStart() {
+  $('start').disabled=busy||sourceDirty||!compiled?.ready||!$('consent').checked;
+  const terminal=['completed','failed','cancelled'].includes(runStatus);
+  for(const name of ['pause','resume','cancel'])$(name).disabled=busy||!runId||!runStatus||terminal;
+  if(runStatus==='paused')$('pause').disabled=true;
+  if(!['paused','needs_reconciliation'].includes(runStatus))$('resume').disabled=true;
+}
 async function action(fn) {
   if(busy)return;busy=true;error();renderStart();
   try{await fn();}catch(e){error(e.message);}finally{busy=false;renderStart();}
 }
 async function compile() {
+  if(sourceDirty)throw new Error('请先应用 JSON 编辑，再编译。');
   const current=revision;const result=await api('compile',{program});
   if(current!==revision)throw new Error('曲谱在编译期间已修改，请重新编译。');
   compiled=result;$('compile-result').textContent=result.ready?'编译通过。请审阅执行范围后确认启动。':result.diagnostics.join('；');renderGraph();renderRoster();
@@ -72,23 +80,23 @@ async function refreshRuns() {
 }
 async function inspect() {
   const id=runId;const run=await api('runs/'+id);if(id!==runId)return;
-  $('run-state').textContent=run.status;
-  const terminal=['completed','failed','cancelled'].includes(run.status);
-  for(const name of ['pause','resume','cancel'])$(name).disabled=terminal;
+  runStatus=run.status;$('run-state').textContent=run.status;renderStart();
   $('run-note').textContent=run.error|| (run.status==='needs_reconciliation'?'执行结果尚不确定。等待 worker 回执后恢复；如无法取得回执，请按文档在 CLI 核对，界面不会自动重放。':'运行 '+id+' · '+run.status);
   const decisions=run.events.filter(e=>e.type==='loop_decision');
   $('decisions').innerHTML=decisions.map(e=>`<div class="decision ${esc(e.decision)}"><span>${esc(e.address)} · #${e.iteration}</span><b>${esc(e.decision)}</b><small>metric ${esc(e.metric??'—')} / best ${esc(e.best_metric)}${e.error?' · '+esc(e.error):''}</small></div>`).join('');
   $('events').innerHTML=run.events.slice(-100).map(e=>`<li><b>${esc(e.type)}</b> ${esc(e.address||'')} <small>${new Date(e.time*1000).toLocaleTimeString()}</small></li>`).join('');
 }
+$('bind-session').onclick=()=>action(async()=>{await api('binding',{program});$('session-label').textContent=`当前任务已关联至 DSH Session: ${config.sessionId}`;});
 $('task').oninput=()=>{program.task.summary=$('task').value;changed();};
 $('deployment').onchange=()=>{context().deployment=$('deployment').value;changed();};
 $('taste').onchange=()=>{context().taste=[...new Set($('taste').value.split(',').map(s=>s.trim()).filter(Boolean))];changed();};
 $('family').onchange=()=>{const t=context().taste||[];context().taste=[...t.filter(x=>!['coding','ai4science'].includes(x)),$('family').value];changed();};
 $('new').onclick=()=>adopt(fresh($('family').value==='ai4science'));
 $('add').onclick=()=>{let n=program.score.chapters.length+1;while(program.score.chapters.some(c=>c.id==='chapter-'+n))n++;const c=chapter(n,$('family').value==='ai4science');c.depends_on=[program.score.chapters.at(-1).id];program.score.chapters.push(c);program.chairs.violin ||= fresh().chairs.violin;program.chairs.snare ||= fresh().chairs.snare;changed();renderEditor();renderRoster();};
+$('source').oninput=()=>{sourceDirty=true;compiled=null;$('consent').checked=false;$('compile-result').textContent='有未应用的 JSON 编辑，请先应用。';renderGraph();renderStart();};
 $('apply').onclick=()=>action(async()=>{const p=JSON.parse($('source').value);await api('compile',{program:p});adopt(p);});
 $('compile').onclick=()=>action(compile);
-$('save').onclick=()=>action(async()=>{await api('scores',{program});await library();$('compile-result').textContent='曲谱已保存。';});
+$('save').onclick=()=>action(async()=>{if(sourceDirty)throw new Error('请先应用 JSON 编辑。');await api('scores',{program});await library();$('compile-result').textContent='曲谱已保存。';});
 $('example').onclick=()=>action(async()=>{adopt(await api('example'));$('compile-result').textContent=config.demo?'Bach 离线示例：命令已配套当前 demo 根目录。':'此示例需要 candidate.py 和 SPEC.py；请确认目标目录已包含对应文件。';});
 $('consent').onchange=renderStart;
 $('start').onclick=()=>action(async()=>{if(!compiled?.ready||!$('consent').checked)return;const result=await api('runs',{program});runId=result.id;$('consent').checked=false;await refreshRuns();});
@@ -96,7 +104,10 @@ for(const name of ['pause','resume','cancel'])$(name).onclick=()=>action(async()
 $('runs').onchange=()=>{runId=$('runs').value;if(runId)void action(inspect);};
 async function boot() {
   config=await api('config');$('mode').textContent=config.demo?'离线演示 · 真实本地执行':'本地任务目录';$('root').textContent='任务目录：'+config.root;
-  adopt(config.demo?await api('example'):fresh());await library();await refreshRuns();
+  $('session-binding').hidden=!config.embedded;
+  $('session-label').textContent=config.sessionId?`DSH Session: ${config.sessionId}`:'从 DSH 会话头部打开大厅后，可显式关联任务。';
+  $('bind-session').disabled=!config.sessionId;
+  adopt(config.binding?.program||(config.demo?await api('example'):fresh()));await library();await refreshRuns();
   setInterval(()=>{if(!busy)refreshRuns().catch(e=>error(e.message));},2000);
 }
 boot().catch(e=>error(e.message));

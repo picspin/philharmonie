@@ -17,6 +17,14 @@ sys.path.insert(0, str(root / "scripts"))
 import score_composer as composer
 
 class ScoreContract(unittest.TestCase):
+    def test_integer_valued_dependency_is_supported(self):
+        score=composer.compose_score('numeric dependency')
+        score['movements'][1]['depends_on'][0]['movement']=1.0
+        self.assertEqual(composer.validate_score(score),[])
+
+    def test_frontier_fallback_cannot_lower_required_capability(self):
+        self.assertTrue(composer.registry_errors({'models':[], 'fallbacks':{'frontier-heavy':['heavy-code']}}))
+
     def setUp(self):
         self.score = composer.compose_score("修复 locked kernel invariant", score_id="score-test")
         self.registry = {"models": [

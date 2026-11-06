@@ -17,6 +17,32 @@ def program(body):
 def loop(code=None):
     return dict(kind='loop',id='variations',edit_paths=['candidate.txt'],metric=dict(path='metric.json',key='loss',direction='min'),limits=dict(max_iterations=3,max_wall_sec=20),baseline=move('baseline',"import json;from pathlib import Path;Path('metric.json').write_text(json.dumps({'loss':float(Path('candidate.txt').read_text())}))",outputs=['metric.json']),body=move('vary',code or "import os,json;from pathlib import Path;i=int(os.environ['PHIL_ITERATION']);v=[8,12,6][i-1];Path('candidate.txt').write_text(str(v));Path('metric.json').write_text(json.dumps({'loss':v}))",writes=['candidate.txt'],outputs=['metric.json']))
 class RunnerTests(unittest.TestCase):
+    def test_abandoned_inner_loop_cannot_revert_settled_outer_best(self):
+        inner=loop();inner['limits']['max_iterations']=1
+        inner['baseline']['argv'][2]="import os;raise_error=int(os.environ['PHIL_ITERATION'])==1;exec('raise SystemExit(1)' if raise_error else 'pass');"+inner['baseline']['argv'][2]
+        inner['body']['argv'][2]="from pathlib import Path;Path('candidate.txt').write_text('7');Path('metric.json').write_text('{\"loss\":7}')"
+        baseline=move('outer-base',"from pathlib import Path;Path('outer.json').write_text('{\"loss\":10}')",outputs=['outer.json'])
+        body=dict(kind='sequence',id='body',children=[inner,move('outer-metric',"from pathlib import Path;Path('outer.json').write_text('{\"loss\":7}')",outputs=['outer.json'])])
+        outer=dict(kind='loop',id='outer',edit_paths=['candidate.txt','metric.json'],metric=dict(path='outer.json',key='loss',direction='min'),limits=dict(max_iterations=2,max_wall_sec=20),baseline=baseline,body=body)
+        p=program(dict(kind='sequence',id='suite',children=[outer,move('unrelated-failure','raise SystemExit(1)')]))
+        r=self.run_program(p);self.assertEqual(r.status()['status'],'failed');self.assertEqual((self.root/'candidate.txt').read_text(),'7')
+
+    def test_cancel_agent_stops_actual_hall_before_receipt(self):
+        fake=self.base/'cancel-hermes';fake.write_text('#!'+sys.executable+'\nimport time\nfrom pathlib import Path\nPath("hall-started").touch()\ntime.sleep(.9)\nPath("late-write").touch()\n');fake.chmod(0o755)
+        node=move('agent','pass');node.pop('argv');node['prompt']='Implement'
+        p=program(node);p['chairs']['local'].update(section='violin_1',executor='agent',hall='hermes')
+        previous=os.environ.get('MADA_HERMES');os.environ['MADA_HERMES']=str(fake)
+        try:
+            r=Runner.create(compile_program(p,{'models':[{'id':'fixture-model','tiers':['heavy-code']}]}),self.root,self.base/'state')
+            t=threading.Thread(target=r.advance);t.start();end=time.time()+5
+            while not (self.root/'hall-started').exists() and time.time()<end:time.sleep(.02)
+            self.assertTrue((self.root/'hall-started').exists());r.control('cancel');t.join(5)
+            self.assertFalse(t.is_alive());self.assertEqual(r.status()['status'],'cancelled');time.sleep(1.1)
+            self.assertFalse((self.root/'late-write').exists())
+        finally:
+            if previous is None:os.environ.pop('MADA_HERMES',None)
+            else:os.environ['MADA_HERMES']=previous
+
     def setUp(self):
         self.tmp=tempfile.TemporaryDirectory();self.base=Path(self.tmp.name);self.root=self.base/'repo';self.root.mkdir();(self.root/'SPEC.md').write_text('locked');(self.root/'candidate.txt').write_text('10')
     def tearDown(self): self.tmp.cleanup()

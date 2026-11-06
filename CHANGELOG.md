@@ -4,6 +4,11 @@ Dates are UTC. Counts are the contract tests in `scripts/test_*.sh`.
 
 ## Unreleased
 
+- Remote stack review: fix schema-valid numeric dependency indexing, frontier downgrade, per-line UTF-8 event recovery and whitespace run ids.
+- Fix two durable-runner regressions: supervised hall survives cancellation, and obsolete inner-loop checkpoints revert an already-settled best candidate. Reject nested metric-path reuse.
+- Preserve and package the DSH adapter with supported additive slots, explicit Session/task binding and authenticated Host routes; add real browser and official-profile CI gates. The adapter is still experimental pending those results.
+- Unapplied workbench JSON edits now invalidate compilation and execution consent.
+
 - Experimental standalone Concert Hall workbench: task/architecture choices, chapter and Chair editing, compile/save/start controls, persistent run/loop event views; 19 service/template tests. Browser validation remains pending under the implementation environment’s socket restrictions.
 
 - Executable v2 composite score compiler: chapter DAGs, recursive sequence/parallel/loop forms, Chair-level tier bindings and sealed plans.
