@@ -9,7 +9,7 @@ Small tested harness for several LLM agents, or one agent in several roles. 中�
 [![snare](https://github.com/picspin/philharmonie/actions/workflows/snare.yml/badge.svg)](https://github.com/picspin/philharmonie/actions/workflows/snare.yml)
 [![Python](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/)
 [![jsonschema](https://img.shields.io/badge/jsonschema-4.18%2B-informational.svg)](requirements.txt)
-[![contracts](https://img.shields.io/badge/contracts-226-success.svg)](#latches--闩)
+[![contracts](https://img.shields.io/badge/contracts-CI-success.svg)](#latches--闩)
 [![Katalog](https://img.shields.io/badge/Katalog-%E2%89%A4140_lines-lightgrey.svg)](SKILL.md)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![last commit](https://img.shields.io/github/last-commit/picspin/philharmonie)](https://github.com/picspin/philharmonie/commits/main)
@@ -130,13 +130,39 @@ bash scripts/test_score_composer.sh
 ```
 
 The JSON is the shared input for the upcoming TUI and DSH Org-Graph ribbon.
-This iteration supplies planning and resolution; live progress and DSH UI
+A read-only terminal board now aggregates supervised execution events; DSH UI
 mounts come later. See [the composer contract](references/score-composer.md),
 [example score](examples/concert-score.json), and the
 [disabled inventory template](examples/hall-registry.json).
 Validation/resolution never grants execution admission.
 
 ---
+
+## Concert Hall monitor / 终端看板
+
+```bash
+# Plan-only board and single-line ribbon; no model needed.
+python3 scripts/concert_hall.py --score examples/concert-score.json
+python3 scripts/concert_hall.py --score examples/concert-score.json --collapsed
+
+# Synthetic failure demo; JSON output is available with --json.
+python3 scripts/concert_hall.py --score examples/concert-score.json \
+  --events examples/concert-events.jsonl --run-id demo-concert
+```
+
+Tag real supervised spawns with `--score-id`, `--movement-index`, and `--run-id`
+(or use a ticket run ID), then read their `--jsonl` log with `--watch`. Movement
+states, dependency edges, active/Tacet seats, tier/model assignments and elapsed
+execution times share one [state-service contract](references/concert-hall.md).
+Token usage and per-rung check results stay unknown until observed by a suitable
+host transport. `--root TARGET` inspects the Snare command inventory without running it.
+
+---
+
+The [task-driven Concert Hall RFC](design/CONCERT_HALL_V2.zh.md) describes the next
+authoring layer: composite chapters, multiple chairs per Section, architecture
+packs and bounded research loops. It is a proposed design, separate from the
+currently implemented v1 planner and monitor.
 
 ## Envelope / 信封
 
@@ -238,3 +264,45 @@ philharmonie/
 [MIT](LICENSE) © 2026 Xiaolei `<zxl1412@gmail.com>`
 
 You may test this hall with any LLM API or agent. Keep Tacet heteronomous: a mute chair must not receive a pen.
+
+## Executable composite scores / 复合曲谱与 Bach 持久化变奏
+
+Version 2 compiles task-driven chapters, sequences, parallel groups and bounded
+progressive loops into a sealed plan. A SQLite runner checkpoints keep/discard/crash
+decisions and resumes through detached worker receipts without blindly replaying
+uncertain jobs. Existing v1 scores remain unchanged.
+
+See [the runnable search example](examples/bach-search/program.json) and
+[compiler, loop and recovery guide](references/composite-runner.md). The fixture
+needs no model/API; agent Chairs use the existing capability-tier resolver and
+supervised hall adapters.
+
+## Independent Concert Hall workbench / 独立前端工作台
+
+```bash
+python3 concert-hall/server.py --demo --state /tmp/philharmonie-hall
+# Open exactly http://127.0.0.1:8787
+```
+
+Compose task/architecture choices (EDA means Event-Driven Architecture), mixed
+chapters and Chairs, compile a score, explicitly authorize a local run, and view
+persistent Bach decisions and events. No DSH account, unofficial Ribbon slot,
+Node runtime or paid model is required for the offline example.
+For a real task, use `--root /path/to/disposable-task --state /path/outside-task`
+and optionally `--registry host-models.json`.
+
+The workbench is experimental. Service contracts and generated score compatibility
+are tested; socket restrictions prevented browser/HTTP end-to-end validation in
+the implementation environment. See [setup, controls and limitations](references/concert-hall-workbench.md).
+
+## DSH adapter and remote alignment
+
+The repository root is now an installable DSH bundle with an additive sidebar,
+main panel and compact Session-header action. It reuses the independent workbench
+and persistent runner; it does not replace DSH's native header or invent a Ribbon
+slot. Follow [installation and Session binding](dsh-plugin-philharmonie/README.md).
+
+The five-PR review, confirmed regressions, fixes and treatment of the two other
+DSH branches are recorded in [remote alignment](design/REMOTE_ALIGNMENT.md).
+The adapter remains experimental until official-host/browser acceptance passes;
+mocked slot tests alone are not a release claim.

@@ -4,6 +4,25 @@ Dates are UTC. Counts are the contract tests in `scripts/test_*.sh`.
 
 ## Unreleased
 
+- Remote stack review: fix schema-valid numeric dependency indexing, frontier downgrade, per-line UTF-8 event recovery and whitespace run ids.
+- Fix two durable-runner regressions: supervised hall survives cancellation, and obsolete inner-loop checkpoints revert an already-settled best candidate. Reject nested metric-path reuse.
+- Preserve and package the DSH adapter with supported additive slots, explicit Session/task binding and authenticated Host routes; add real browser and official-profile CI gates. The adapter is still experimental pending those results.
+- Unapplied workbench JSON edits now invalidate compilation and execution consent.
+
+- Experimental standalone Concert Hall workbench: task/architecture choices, chapter and Chair editing, compile/save/start controls, persistent run/loop event views; 19 service/template tests. Browser validation remains pending under the implementation environment’s socket restrictions.
+
+- Executable v2 composite score compiler: chapter DAGs, recursive sequence/parallel/loop forms, Chair-level tier bindings and sealed plans.
+- Persistent Bach variation runner: SQLite best-file checkpoints, strict keep/discard/crash decisions, worker receipts, pause/cancel/reconciliation and bounded retries.
+- Offline search-optimization example and 36 compiler/runner tests, including coordinator SIGKILL recovery.
+
+- Concert Hall state aggregation and ASCII/ANSI terminal board: one-line ribbon,
+  expanded movement/dependency/Tacet views, JSON snapshots and watch mode.
+- Supervised spawn logs gain optional score/movement/run labels and per-child
+  execution IDs; launch failures close their observed attempts. Observation
+  metadata preserves audition, ticket, tool and hall enforcement.
+- Snare command inventory is shown separately from unobserved test outcomes;
+  malformed/conflicting observations degrade the board rather than imply success.
+
 - Concert Hall planning: versioned score and host inventory schemas; deterministic
   composer forms, movement dependencies, explicit Tacet, isolation locks and turn budgets.
 - Capability-tier resolution: enabled host inventory, section/environment pins,

@@ -101,7 +101,7 @@ def validate_score(score: Any) -> list[str]:
             brass_movements += 1
         seen = set()
         for dependency in movement["depends_on"]:
-            source = dependency["movement"]
+            source = int(dependency["movement"])
             if source in seen:
                 errors.append(f"{prefix}: duplicate dependency movement {source}")
             seen.add(source)
@@ -140,7 +140,7 @@ def validate_score(score: Any) -> list[str]:
                 errors.append(f"{section}: invalid model routing source")
             if state == "resolved" and resolved != tier:
                 errors.append(f"{section}: resolved tier must match requested tier")
-            if state == "fallback" and (resolved is None or resolved == tier or resolved in {"frontier-heavy", "0-token-shell"}):
+            if state == "fallback" and (tier == "frontier-heavy" or resolved is None or resolved == tier or resolved in {"frontier-heavy", "0-token-shell"}):
                 errors.append(f"{section}: invalid fallback tier")
     return errors
 
@@ -161,6 +161,8 @@ def registry_errors(registry: Any) -> list[str]:
         if section in SHELL_SECTIONS:
             errors.append(f"{section}: local shell binding cannot be overridden")
     for tier, fallback in registry.get("fallbacks", {}).items():
+        if tier == "frontier-heavy" and fallback:
+            errors.append("frontier-heavy cannot fall back to a weaker tier")
         if tier in fallback:
             errors.append(f"{tier}: fallback cannot reference itself")
         if "frontier-heavy" in fallback:
