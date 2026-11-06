@@ -1,6 +1,9 @@
 name: Concert Hall browser
 on:
   pull_request:
+concurrency:
+  group: concert-hall-browser-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 jobs:
   workbench-browser:
     runs-on: ubuntu-latest
@@ -10,8 +13,12 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - run: python3 -m pip install 'jsonschema>=4.18' playwright
-      - run: python3 -m playwright install --with-deps chromium
+      - run: python3 -m pip install 'jsonschema>=4.18' 'playwright==1.64.1'
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-${{ runner.arch }}-playwright-1.64.1-shell
+      - run: python3 -m playwright install --with-deps --only-shell chromium
       - run: python3 concert-hall/tests/e2e_workbench.py
         env:
           PHIL_SCREENSHOTS: browser-artifacts
@@ -31,8 +38,12 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
-      - run: python3 -m pip install 'jsonschema>=4.18' playwright
-      - run: python3 -m playwright install --with-deps chromium
+      - run: python3 -m pip install 'jsonschema>=4.18' 'playwright==1.64.1'
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-${{ runner.arch }}-playwright-1.64.1-shell
+      - run: python3 -m playwright install --with-deps --only-shell chromium
       - name: Install pinned official DSH and its profile package manager
         run: npm install --prefix /tmp/phil-dsh-runtime --no-audit --no-fund @deepseek-ai/dsh@0.2.2-alpha.2 pnpm@11.28.5
       - name: Verify packed bundle in an actual official profile
