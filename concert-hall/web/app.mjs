@@ -2,7 +2,7 @@ import {esc, architectureChoices, clone, chapter, fresh} from './composer.mjs';
 const $ = id => document.getElementById(id);
 const token = document.querySelector('meta[name="hall-token"]').content;
 const forms = {custom:'自由序曲',mozart_sonata:'Mozart · Sonata',beethoven_symphony:'Beethoven · Symphony',bach_fugue:'Bach · Fugue',bach_variation:'Bach · Progressive variation',brahms_variation:'Brahms · Variation'};
-let config, program, compiled = null, revision = 0, runId = '', busy = false, sourceDirty = false;
+let config, program, compiled = null, revision = 0, runId = '', busy = false, sourceDirty = false, runStatus = null;
 function error(message='') { $('error').hidden = !message; $('error').textContent = message; }
 async function api(path, body) {
   if(globalThis.philharmonieTransport)return globalThis.philharmonieTransport(path,body);
@@ -50,7 +50,13 @@ function renderRoster() {
   }).join('');
   $('roster').querySelectorAll('select').forEach(select=>select.onchange=()=>{const c=program.chairs[select.dataset.chair];if(select.value)c.model=select.value;else delete c.model;changed();});
 }
-function renderStart() {$('start').disabled=busy||sourceDirty||!compiled?.ready||!$('consent').checked;}
+function renderStart() {
+  $('start').disabled=busy||sourceDirty||!compiled?.ready||!$('consent').checked;
+  const terminal=['completed','failed','cancelled'].includes(runStatus);
+  for(const name of ['pause','resume','cancel'])$(name).disabled=busy||!runId||!runStatus||terminal;
+  if(runStatus==='paused')$('pause').disabled=true;
+  if(!['paused','needs_reconciliation'].includes(runStatus))$('resume').disabled=true;
+}
 async function action(fn) {
   if(busy)return;busy=true;error();renderStart();
   try{await fn();}catch(e){error(e.message);}finally{busy=false;renderStart();}
@@ -74,9 +80,7 @@ async function refreshRuns() {
 }
 async function inspect() {
   const id=runId;const run=await api('runs/'+id);if(id!==runId)return;
-  $('run-state').textContent=run.status;
-  const terminal=['completed','failed','cancelled'].includes(run.status);
-  for(const name of ['pause','resume','cancel'])$(name).disabled=terminal;
+  runStatus=run.status;$('run-state').textContent=run.status;renderStart();
   $('run-note').textContent=run.error|| (run.status==='needs_reconciliation'?'执行结果尚不确定。等待 worker 回执后恢复；如无法取得回执，请按文档在 CLI 核对，界面不会自动重放。':'运行 '+id+' · '+run.status);
   const decisions=run.events.filter(e=>e.type==='loop_decision');
   $('decisions').innerHTML=decisions.map(e=>`<div class="decision ${esc(e.decision)}"><span>${esc(e.address)} · #${e.iteration}</span><b>${esc(e.decision)}</b><small>metric ${esc(e.metric??'—')} / best ${esc(e.best_metric)}${e.error?' · '+esc(e.error):''}</small></div>`).join('');

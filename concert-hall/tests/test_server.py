@@ -60,6 +60,22 @@ class WorkbenchTests(unittest.TestCase):
             time.sleep(.05)
         self.fail('run did not terminate')
 
+    def test_queued_pause_survives_initial_coordinator_launch(self):
+        with patch.object(self.app,'launch') as pending:
+            identity=self.app.start(self.program)['id']
+            command=pending.call_args.args[1]
+        self.app.control(identity,'pause')
+        self.app.launch(identity,command)
+        end=time.time()+8
+        while time.time()<end:
+            status=self.app.inspect(identity)
+            if status['status'] in ('paused','completed','failed'):break
+            time.sleep(.05)
+        self.assertEqual(status['status'],'paused')
+        self.assertFalse(any(e['type']=='step_started' for e in status['events']))
+        self.app.control(identity,'resume')
+        self.assertEqual(self.wait_run(identity)['status'],'completed')
+
     def test_compile_does_not_execute(self):
         plan = self.app.compile(self.program)
         self.assertTrue(plan['ready'])

@@ -120,7 +120,7 @@ class Workbench:
                 raise
             r.close()
             try:
-                self.launch(identity, 'resume')
+                self.launch(identity, 'advance')
             except OSError as exc:
                 r = Runner(directory)
                 r.put('error', str(exc))
@@ -133,7 +133,8 @@ class Workbench:
         with self.lock:
             if action not in ('pause', 'resume', 'cancel'):
                 raise ValueError('unsupported action')
-            if self.inspect(identity, events=False)['status'] in ('completed', 'failed', 'cancelled'):
+            current=self.inspect(identity, events=False)
+            if current['status'] in ('completed', 'failed', 'cancelled'):
                 raise ValueError('terminal runs cannot be controlled; start a new run')
             r = Runner(self.resource('runs', identity))
             try:
@@ -143,8 +144,15 @@ class Workbench:
             # A live coordinator consumes pause/cancel; a dead coordinator needs
             # one recovery pass to settle receipts and honor cancellation.
             p = self.processes.get(identity)
+            if p is not None and p.poll() is None and current['status'] in ('paused', 'needs_reconciliation') and action in ('resume', 'cancel'):
+                # A published pause may precede coordinator process exit. Join
+                # its shutdown before launching a replacement coordinator.
+                try:
+                    p.wait(timeout=5)
+                except subprocess.TimeoutExpired as exc:
+                    raise ValueError('previous coordinator is still shutting down; inspect status before retrying') from exc
             if (p is None or p.poll() is not None) and action in ('resume', 'cancel'):
-                self.launch(identity, 'resume')
+                self.launch(identity, 'advance')
             return self.inspect(identity)
 
 class Handler(BaseHTTPRequestHandler):

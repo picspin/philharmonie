@@ -17,7 +17,7 @@ import threading
 import time
 import unittest
 from urllib.parse import urlsplit
-from playwright.sync_api import sync_playwright, expect
+from playwright.sync_api import sync_playwright, expect, TimeoutError as PlaywrightTimeout
 
 REPO = Path(__file__).resolve().parents[2]
 
@@ -62,12 +62,24 @@ class OfficialDshBrowserTests(unittest.TestCase):
                     if os.environ.get('PHIL_CHROMIUM'):options['executable_path']=os.environ['PHIL_CHROMIUM']
                     browser=p.chromium.launch(**options)
                     context=browser.new_context(viewport={'width':1440,'height':1100})
-                    page=context.new_page();errors=[];page.on('pageerror',lambda error:errors.append(str(error)))
+                    page=context.new_page();errors=[];dismissed_dialogs=[];page.on('pageerror',lambda error:errors.append(str(error)))
                     try:
                         page.goto(launch,wait_until='domcontentloaded')
                         page.get_by_role('button',name='Concert Hall',exact=True).click(timeout=60000)
                         frame=page.frame_locator('iframe[title="Philharmonie Concert Hall"]')
                         expect(frame.locator('#task')).to_have_value('Improve sorted search while retaining first-match semantics',timeout=30000)
+                        # A fresh official profile may show a dismissible native
+                        # dialog after the panel has mounted. Use normal keyboard
+                        # dismissal; never force-click through its mask.
+                        try:
+                            frame.locator('#compile').click(trial=True,timeout=3000)
+                        except PlaywrightTimeout:
+                            dialog=page.get_by_role('dialog').last
+                            expect(dialog).to_be_visible()
+                            dismissed_dialogs.append(dialog.get_attribute('aria-label'))
+                            page.screenshot(path=str(artifacts/'dsh-initial-dialog.png'),full_page=True)
+                            page.keyboard.press('Escape')
+                            expect(dialog).not_to_be_visible()
                         frame.locator('#compile').click();expect(frame.locator('#compile-result')).to_contain_text('编译通过')
                         frame.locator('#consent').check();frame.locator('#start').click()
                         expect(frame.locator('#run-state')).to_have_text('completed',timeout=30000)
@@ -92,7 +104,7 @@ class OfficialDshBrowserTests(unittest.TestCase):
                         # Preserve diagnostics before Playwright tears the page down.
                         try:
                             page.screenshot(path=str(artifacts/'dsh-last-page.png'),full_page=True)
-                            diagnostics=dict(errors=errors,body=page.locator('body').inner_text()[:12000],entries=page.evaluate("(window.__DSH_BOOT__?.entries||[]).map(e=>e.id)"))
+                            diagnostics=dict(errors=errors,dismissedDialogs=dismissed_dialogs,body=page.locator('body').inner_text()[:12000],entries=page.evaluate("(window.__DSH_BOOT__?.entries||[]).map(e=>e.id)"))
                             (artifacts/'browser-diagnostics.json').write_text(json.dumps(diagnostics,ensure_ascii=False,indent=2))
                         except Exception as capture_error:
                             (artifacts/'capture-error.txt').write_text(str(capture_error))

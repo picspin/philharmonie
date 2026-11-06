@@ -392,7 +392,7 @@ def runtime_digest():
 def main():
     parser=argparse.ArgumentParser(description=__doc__);sub=parser.add_subparsers(dest='command',required=True)
     w=sub.add_parser('worker');w.add_argument('--job',required=True)
-    for command in ('run','resume','status','pause','cancel','reconcile'):
+    for command in ('run','resume','advance','status','pause','cancel','reconcile'):
         p=sub.add_parser(command);p.add_argument('--state',required=True)
         if command=='run': p.add_argument('--plan',required=True);p.add_argument('--root',required=True)
         if command=='reconcile': p.add_argument('--address',required=True);p.add_argument('--note',required=True);p.add_argument('--confirm-stopped',action='store_true')
@@ -401,7 +401,7 @@ def main():
     r=None
     try:
         r=Runner.create(read_json(a.plan),a.root,a.state) if a.command=='run' else Runner(a.state)
-        if a.command in ('run','resume'):
+        if a.command in ('run','resume','advance'):
             if a.command=='resume': r.control('resume')
             result=r.advance()
         elif a.command in ('pause','cancel'): r.control(a.command);result=r.status()
