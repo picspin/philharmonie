@@ -45,7 +45,10 @@ jobs:
           key: ${{ runner.os }}-${{ runner.arch }}-playwright-1.64.1-shell
       - run: python3 -m playwright install --with-deps --only-shell chromium
       - name: Install pinned official DSH and its profile package manager
-        run: npm install --prefix /tmp/phil-dsh-runtime --no-audit --no-fund @deepseek-ai/dsh@0.2.2-alpha.2 pnpm@11.28.5
+        run: |
+          mkdir -p /tmp/phil-dsh-runtime
+          cp dsh-plugin-philharmonie/tests/official-runtime/package.json /tmp/phil-dsh-runtime/package.json
+          npm install --prefix /tmp/phil-dsh-runtime --no-audit --no-fund
       - name: Verify packed bundle in an actual official profile
         run: |
           export PATH="/tmp/phil-dsh-runtime/node_modules/.bin:$PATH"

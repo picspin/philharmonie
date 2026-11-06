@@ -15,6 +15,24 @@ Use Node >=24.9 and DSH 0.2.2-alpha.2 (the source contract reviewed here is
 `deepseek-ai/deepseek-harness@ce7073d51254c26cd63b22a60835b8f948deb447`).
 The target machine also needs Python 3.10+ and `jsonschema>=4.18`.
 
+The npm release's dependency ranges currently mix incompatible Cordis alpha
+versions: `dsh-app-boot@0.2.2-alpha.2` calls the three-argument `internal/update`
+hook, whereas `cordis@4.0.6-alpha.2` supplies two arguments. This breaks native
+settings saves (`settings/rejected: next is not a function`), including the
+first-run Preview Notice. Our smoke runtime pins the matching alpha.1 core
+family in `tests/official-runtime/package.json`; it does not patch runtime code
+or pre-acknowledge the notice. Reproduce that isolated runtime with:
+
+```bash
+mkdir -p /tmp/phil-dsh-runtime
+cp dsh-plugin-philharmonie/tests/official-runtime/package.json /tmp/phil-dsh-runtime/package.json
+npm install --prefix /tmp/phil-dsh-runtime --no-audit --no-fund
+export PATH="/tmp/phil-dsh-runtime/node_modules/.bin:$PATH"
+```
+
+Use this runtime for the installation below when testing this pinned DSH
+release. A future DSH upgrade needs its own compatibility validation.
+
 ```bash
 python3 -m pip install -r requirements.txt
 node dsh-plugin-philharmonie/build.mjs --check
