@@ -59,11 +59,13 @@ class OfficialDshBrowserTests(unittest.TestCase):
             tarball = base/json.loads(packed.stdout)[0]['filename']
             subprocess.run([binary,'--profile','web','--dump-default-config'],env=env,stdout=subprocess.DEVNULL,check=True,timeout=120)
             subprocess.run([binary,'plugin','--profile','web','add','file:'+str(tarball)],env=env,check=True,timeout=240)
-            overlay=base/'local.yml'
-            overlay.write_text('- id: philharmonie\n  config:\n    state: '+json.dumps(str(base/'hall-state'))+'\n    demo: true\n')
+            # The installed profile owns editable settings. Keep its Hall
+            # configuration in that profile, not a final CLI override layer.
+            profile_patch=Path(env['DSH_HOME'])/'profiles/web/cordis.patch.yml'
+            profile_patch.write_text('- id: philharmonie\n  config:\n    state: '+json.dumps(str(base/'hall-state'))+'\n    demo: true\n')
             with socket.socket() as sock:
                 sock.bind(('127.0.0.1',0));port=sock.getsockname()[1]
-            proc = subprocess.Popen([binary,'--profile','web','--patch',str(overlay),'--port',str(port),'--no-open'],env=env,stdout=subprocess.PIPE,stderr=subprocess.STDOUT,text=True,start_new_session=True)
+            proc = subprocess.Popen([binary,'--profile','web','--port',str(port),'--no-open'],env=env,stdout=subprocess.PIPE,stderr=subprocess.STDOUT,text=True,start_new_session=True)
             lines=queue.Queue();logs=[]
             def consume():
                 for line in proc.stdout:
@@ -86,7 +88,19 @@ class OfficialDshBrowserTests(unittest.TestCase):
                     if os.environ.get('PHIL_CHROMIUM'):options['executable_path']=os.environ['PHIL_CHROMIUM']
                     browser=p.chromium.launch(**options)
                     context=browser.new_context(viewport={'width':1440,'height':1100})
-                    page=context.new_page();errors=[];dismissed_dialogs=[];page.on('pageerror',lambda error:errors.append(str(error)))
+                    page=context.new_page();errors=[];dismissed_dialogs=[];api_errors=[];console_errors=[]
+                    page.on('pageerror',lambda error:errors.append(str(error)))
+                    page.on('console',lambda message:console_errors.append(re.sub(r'token=[^\s]+','token=<redacted>',message.text)) if message.type=='error' else None)
+                    def capture_api_error(response):
+                        if '/api/' not in urlsplit(response.url).path:return
+                        try:
+                            payload=response.json()
+                            result=payload.get('result',payload) if isinstance(payload,dict) else {}
+                            if response.status>=400 or result.get('ok') is False:
+                                error=result.get('error',{})
+                                api_errors.append(dict(path=urlsplit(response.url).path,status=response.status,code=error.get('code'),message=error.get('message')))
+                        except Exception:pass
+                    page.on('response',capture_api_error)
                     try:
                         page.goto(launch,wait_until='domcontentloaded')
                         entry=page.get_by_role('button',name='Concert Hall',exact=True)
@@ -119,7 +133,7 @@ class OfficialDshBrowserTests(unittest.TestCase):
                         # Preserve diagnostics before Playwright tears the page down.
                         try:
                             page.screenshot(path=str(artifacts/'dsh-last-page.png'),full_page=True)
-                            diagnostics=dict(errors=errors,dismissedDialogs=dismissed_dialogs,body=page.locator('body').inner_text()[:12000],entries=page.evaluate("(window.__DSH_BOOT__?.entries||[]).map(e=>e.id)"))
+                            diagnostics=dict(errors=errors,apiErrors=api_errors[-30:],consoleErrors=console_errors[-30:],dismissedDialogs=dismissed_dialogs,body=page.locator('body').inner_text()[:12000],entries=page.evaluate("(window.__DSH_BOOT__?.entries||[]).map(e=>e.id)"))
                             (artifacts/'browser-diagnostics.json').write_text(json.dumps(diagnostics,ensure_ascii=False,indent=2))
                         except Exception as capture_error:
                             (artifacts/'capture-error.txt').write_text(str(capture_error))
