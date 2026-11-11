@@ -304,5 +304,8 @@ slot. Follow [installation and Session binding](dsh-plugin-philharmonie/README.m
 
 The five-PR review, confirmed regressions, fixes and treatment of the two other
 DSH branches are recorded in [remote alignment](design/REMOTE_ALIGNMENT.md).
-The adapter remains experimental until official-host/browser acceptance passes;
-mocked slot tests alone are not a release claim.
+Official-host browser acceptance covers packed installation, the real sidebar
+and nonblank Session-header entry, independent task binding, local loop execution,
+return navigation and reload restoration. It uses closed offline Session
+recordings through DSH's persistence provider; provider-backed agent execution
+still uses the existing Hall adapters.

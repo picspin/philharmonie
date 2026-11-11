@@ -84,13 +84,15 @@ async function library() {
 async function refreshRuns() {
   const taskId=program.task.id;
   const allRuns=await api('runs');if(taskId!==program.task.id)return;
-  const runs=allRuns.filter(r=>r.task.id===taskId);
+  const runs=config.embedded?allRuns.filter(r=>r.task.id===taskId):allRuns;
+  if(config.embedded&&runId&&!runs.some(r=>r.id===runId))resetRun();
   $('runs').innerHTML='<option value="">选择运行</option>'+runs.map(r=>`<option value="${r.id}" ${r.id===runId?'selected':''}>${esc(r.task.summary)} · ${esc(r.status)}</option>`).join('');
   if(!runId&&runs.length){runId=runs.at(-1).id;$('runs').value=runId;}
   if(runId)await inspect();
 }
 async function inspect() {
-  const id=runId;const run=await api('runs/'+id);if(id!==runId)return;
+  const id=runId,taskId=program.task.id;const run=await api('runs/'+id);
+  if(id!==runId||taskId!==program.task.id||(config.embedded&&run.task.id!==taskId))return;
   runStatus=run.status;$('run-state').textContent=run.status;renderStart();
   $('run-note').textContent=run.error|| (run.status==='needs_reconciliation'?'执行结果尚不确定。等待 worker 回执后恢复；如无法取得回执，请按文档在 CLI 核对，界面不会自动重放。':'运行 '+id+' · '+run.status);
   const decisions=run.events.filter(e=>e.type==='loop_decision');

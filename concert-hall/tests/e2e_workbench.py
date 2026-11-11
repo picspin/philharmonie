@@ -87,6 +87,10 @@ class WorkbenchBrowserTests(unittest.TestCase):
                     if screenshot_dir:
                         page.screenshot(path=str(Path(screenshot_dir)/'workbench-mobile.png'),full_page=True)
                     self.assertFalse(page.evaluate('document.documentElement.scrollWidth > innerWidth'))
+                    # The standalone Hall keeps global history even after a new draft.
+                    page.get_by_role('button',name='新曲谱',exact=True).click()
+                    expect(page.locator('#runs')).to_have_value(history_id)
+                    expect(page.locator('#run-state')).to_have_text('completed')
                     self.assertEqual(errors,[])
                     browser.close()
             finally:

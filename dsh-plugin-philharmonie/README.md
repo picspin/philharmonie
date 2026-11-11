@@ -89,6 +89,13 @@ selection/title/navigation. In the Hall, explicitly bind the current task to the
 Session. Merely opening or switching Sessions does not reassign a task. Multiple
 Sessions can refer to the same task id and observe its latest run. Binding and
 run identity survive Host/plugin restart in the configured state directory.
+The Hall navigation provides “返回 DSH 会话” without changing the native
+Session selection, and “全局大厅” to clear the Hall's Session context. The chosen
+Hall context is retained per browser tab when session storage is available.
+Embedded run history follows the edited task id; choosing a different task
+clears its controls instead of exposing another task's run. The standalone
+workbench retains its global run history. Unapplied JSON must be applied before
+binding. Changing an existing task's summary does not mint a new task identity.
 Uncertain runs require the existing CLI reconciliation; there is no blind retry.
 
 Owner-only Fetch routes run through the authenticated DSH Connection carrier.
@@ -108,16 +115,20 @@ python3 concert-hall/tests/e2e_workbench.py  # optional Playwright + Chromium
 The seven local plugin tests cover wire/config validation, explicit Host model
 mapping, real persistent bridge/runner decisions, multi-Session binding across
 restart, additive slot registration, closure-factory loading and lifecycle routes.
-They do not establish official DSH boot or native header interaction. The browser
-workflow exercises real standalone HTTP/compiler/runner behavior; its result and
-screenshots must be inspected separately. Keep the integration draft until the
-actual official profile install/load/native-header flow is verified.
+Those focused tests are complemented by the browser workflow: standalone
+HTTP/compiler/runner behavior and installation of the actual packed bundle into
+an official DSH profile. The official smoke persists two closed offline Session
+recordings through DSH's JSONL provider, then uses the native sidebar and header
+slots. It verifies binding, real loop execution, per-task history, return to the
+unchanged conversation, reload restoration, and anonymous route rejection.
+It needs no provider credentials or model calls; it does not verify paid model
+execution through a DSH-native agent adapter.
 
 The separate remote Cordis branch adds agent tools and a global Tacet hook, not
 this UI. Its source and limitations are reviewed in `design/REMOTE_ALIGNMENT.md`;
 those tool/runtime capabilities have not been silently merged or advertised here.
 
 `Concert Hall browser` CI also installs the packed bundle into the pinned official
-DSH profile and exercises the real authenticated panel. The test intentionally
-does not claim native nonblank-Session header acceptance; that remains a separate
-gate even if the global-panel smoke passes.
+DSH profile and exercises the real authenticated panel and nonblank-Session
+header flow. Artifacts include `dsh-session-header.png` and
+`dsh-session-restored.png` alongside desktop/mobile panel screenshots.
