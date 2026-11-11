@@ -22,7 +22,7 @@ try {
         {type:'user/message',time:now+1,surfaceOp:'append',data:{role:'user',id:'native-message-'+suffix,source:{kind:'user',rpcId:'native-request-'+suffix},content:[{type:'text',text}]}},
         {type:'session/title',time:now+2,data:{title:'Philharmonie session '+suffix.toUpperCase(),messageSeqs:[],source:{kind:'user'}}},
         {type:'turn/end',time:now+3,data:{turn:1,reason:{kind:'completed'}}},
-      ]);
+      ].map((event,seq)=>({...event,seq})));
     } finally {await handle.close();}
   }
 } finally {await ctx.fiber.dispose();}
