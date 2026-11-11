@@ -132,3 +132,44 @@ those tool/runtime capabilities have not been silently merged or advertised here
 DSH profile and exercises the real authenticated panel and nonblank-Session
 header flow. Artifacts include `dsh-session-header.png` and
 `dsh-session-restored.png` alongside desktop/mobile panel screenshots.
+
+
+## Event instrumentation / 事件音效
+
+The Hall has an opt-in Web Audio sound desk in both standalone and DSH views.
+Every newly opened view starts muted; only volume is saved locally. Enable it
+with the visible button, choose a volume, and use “试听”. Audio is synthesized
+locally with short motifs; no sound files, permissions, model tokens, network
+requests, or background music are required. Coding uses triangle-wave tones;
+AI4Science uses sine-wave tones. This is synthetic instrumentation, not sampled
+acoustic instruments. Sound never changes a verdict or controls execution.
+
+| Event | Motif |
+| --- | --- |
+| Start / resume | Rising entry |
+| Compile ready / hook pass | Two short high notes |
+| Unresolved route / hook blocked / reconciliation | Low semitone warning |
+| Loop keep / discard / crash | Rising triad / soft descent / low tension |
+| Completed / failed / cancelled / paused | Cadence / low descent / falling pair / repeated pair |
+| Save or bind a task | Single confirmation note |
+| Step completed | Optional short note; disabled by default |
+
+A poll burst plays its highest-priority cue; rapid lower-priority cues are
+coalesced. History selection and repeat polls are silent. Hidden views consume
+events silently and stop pending notes, so returning does not replay a backlog.
+Unsupported or suspended audio leaves all visual controls working.
+
+Hook adapters can append `{type: "hook_result", outcome: "pass" | "fail" |
+"blocked"}` to an observed event stream. A frontend integration can instead
+announce an already-decided outcome in the Hall document:
+
+```js
+document.dispatchEvent(new CustomEvent('philharmonie:cue', {
+  detail: { cue: 'hook_pass' } // or hook_block, failure
+}));
+```
+
+This document-local channel accepts only the predefined motif names; it does
+not execute a hook or load URLs. Existing CLI-only hooks are not automatically
+streamed into the Hall: their adapter must publish the outcome. Visual status
+remains the authoritative, accessible feedback.
