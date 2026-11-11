@@ -23,6 +23,7 @@ jobs:
           set -euo pipefail
           python3 -m unittest discover -s concert-hall/tests -v
           node concert-hall/tests/composer.test.mjs
+          node concert-hall/tests/sound.test.mjs
           node dsh-plugin-philharmonie/tests/plugin.test.mjs
           node dsh-plugin-philharmonie/build.mjs --check
           npm --cache /tmp/philharmonie-npm-cache pack --ignore-scripts --dry-run

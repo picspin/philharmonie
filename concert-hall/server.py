@@ -195,7 +195,7 @@ class Handler(BaseHTTPRequestHandler):
             if path == '/':
                 data = (REPO / 'concert-hall/web/index.html').read_text().replace('__TOKEN__', app.token)
                 return self.send(200, data.encode(), 'text/html; charset=utf-8')
-            assets = {'/app.mjs': 'text/javascript', '/composer.mjs': 'text/javascript', '/styles.css': 'text/css'}
+            assets = {'/app.mjs': 'text/javascript', '/composer.mjs': 'text/javascript', '/sound.mjs': 'text/javascript', '/styles.css': 'text/css'}
             if path in assets:
                 return self.send(200, (REPO / 'concert-hall/web' / path[1:]).read_bytes(), assets[path])
             if path == '/api/config':

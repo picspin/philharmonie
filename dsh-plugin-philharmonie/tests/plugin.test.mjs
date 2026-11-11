@@ -67,6 +67,6 @@ test('frame assets are document-relative and Host routes have owned lifecycle di
  const html=await frameHtml();assert.match(html,/src="frame.mjs"/);assert.match(html,/href="styles.css"/);assert.doesNotMatch(html,/__TOKEN__/);
  const state=await temp(),routes=[],cleanup=[];
  const ctx={llm,connection:{fetch:{register:route=>{routes.push(route);return()=>{};}}},effect:f=>cleanup.push(f())};
- try{await apply(ctx,{state,demo:true});assert.equal(routes.length,6);assert.ok(routes.every(r=>r.path.startsWith('/api/philharmonie/')));assert.ok(routes.find(r=>r.path.endsWith('/request')).methods.includes('POST'));}
+ try{await apply(ctx,{state,demo:true});assert.equal(routes.length,7);assert.ok(routes.every(r=>r.path.startsWith('/api/philharmonie/')));assert.ok(routes.find(r=>r.path.endsWith('/request')).methods.includes('POST'));}
  finally{for(const f of cleanup)await f?.();await rm(state,{recursive:true,force:true});}
 });

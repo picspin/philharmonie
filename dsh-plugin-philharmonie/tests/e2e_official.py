@@ -91,6 +91,7 @@ class OfficialDshBrowserTests(unittest.TestCase):
                     if os.environ.get('PHIL_CHROMIUM'):options['executable_path']=os.environ['PHIL_CHROMIUM']
                     browser=p.chromium.launch(**options)
                     context=browser.new_context(viewport={'width':1440,'height':1100})
+                    context.add_init_script((REPO/'concert-hall/tests/audio-probe.js').read_text())
                     page=context.new_page();errors=[];dismissed_dialogs=[];api_errors=[];console_errors=[]
                     page.on('pageerror',lambda error:errors.append(str(error)))
                     page.on('console',lambda message:console_errors.append(re.sub(r'token=[^\s]+','token=<redacted>',message.text)) if message.type=='error' else None)
@@ -111,6 +112,10 @@ class OfficialDshBrowserTests(unittest.TestCase):
                         click_with_native_setup(page,entry,artifacts,dismissed_dialogs)
                         frame=page.frame_locator('iframe[title="Philharmonie Concert Hall"]')
                         expect(frame.locator('#task')).to_have_value('Improve sorted search while retaining first-match semantics',timeout=30000)
+                        expect(frame.locator('#sound-toggle')).to_have_attribute('aria-pressed','false')
+                        frame.locator('#sound-toggle').click()
+                        expect(frame.locator('#sound-toggle')).to_have_attribute('aria-pressed','true')
+                        self.assertGreater(frame.locator('body').evaluate('(body)=>body.ownerDocument.defaultView.__audioProbe.nodes'),0)
                         click_with_native_setup(page,frame.locator('#compile'),artifacts,dismissed_dialogs)
                         expect(frame.locator('#compile-result')).to_contain_text('编译通过')
                         frame.locator('#consent').check();frame.locator('#start').click()
