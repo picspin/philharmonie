@@ -74,7 +74,7 @@ export function createHandler(config,{llm,bridge}) {
 }
 export async function frameHtml() {
   let html=await readFile(new URL('concert-hall/web/index.html',root),'utf8');
-  return html.replace('content="__TOKEN__"','content="host-owner-auth"').replace('href="/styles.css"','href="styles.css"').replace('src="/app.mjs"','src="frame.mjs"');
+  return html.replace('class="wordmark" href="/"','class="wordmark" href="#top"').replace('content="__TOKEN__"','content="host-owner-auth"').replace('href="/styles.css"','href="styles.css"').replace('src="/app.mjs"','src="frame.mjs"');
 }
 export async function apply(ctx,input) {
   const config=validateConfig(input),bridge=new PythonBridge(config);

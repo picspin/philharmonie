@@ -147,6 +147,10 @@ class OfficialDshBrowserTests(unittest.TestCase):
                         expect(frame.locator('#task')).to_have_value(program['task']['summary'])
                         frame.locator('#bind-session').click()
                         expect(frame.locator('#session-label')).to_contain_text('当前任务已关联')
+                        # The embedded wordmark must not load DSH inside its own iframe.
+                        frame.locator('.wordmark').click()
+                        expect(frame.locator('#task')).to_have_value(program['task']['summary'])
+                        expect(frame.locator('#session-label')).to_contain_text(a)
                         expect(frame.locator('#runs option')).to_have_count(1)
                         frame.locator('#compile').click()
                         expect(frame.locator('#compile-result')).to_contain_text('编译通过')
