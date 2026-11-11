@@ -1,8 +1,8 @@
 """Install packed plugin into official DSH and exercise the authenticated panel.
 
 DSH_BIN must point at the actual supported CLI. No mocked Cordis/React services.
-This smoke covers the global panel; native nonblank-Session header interaction
-is still a separate acceptance scenario.
+Covers the global panel and two native nonblank Sessions, using closed offline
+recordings persisted through the official provider rather than mocked UI props.
 """
 import json
 import os
@@ -63,6 +63,9 @@ class OfficialDshBrowserTests(unittest.TestCase):
             # configuration in that profile, not a final CLI override layer.
             profile_patch=Path(env['DSH_HOME'])/'profiles/web/cordis.patch.yml'
             profile_patch.write_text('- id: philharmonie\n  config:\n    state: '+json.dumps(str(base/'hall-state'))+'\n    demo: true\n')
+            native_root=base/'native-workspace'
+            native_root.mkdir()
+            subprocess.run(['node',str(REPO/'dsh-plugin-philharmonie/tests/seed-native-sessions.mjs'),str(Path(env['DSH_HOME'])/'sessions'),str(native_root)],env=dict(env,DSH_BIN=binary),check=True,timeout=60)
             with socket.socket() as sock:
                 sock.bind(('127.0.0.1',0));port=sock.getsockname()[1]
             proc = subprocess.Popen([binary,'--profile','web','--port',str(port),'--no-open'],env=env,stdout=subprocess.PIPE,stderr=subprocess.STDOUT,text=True,start_new_session=True)
@@ -115,13 +118,77 @@ class OfficialDshBrowserTests(unittest.TestCase):
                         expect(frame.locator('.decision.keep')).to_have_count(2)
                         expect(frame.locator('.decision.crash')).to_have_count(1)
                         expect(frame.locator('.decision.discard')).to_have_count(1)
-                        program=json.loads(frame.locator('#source').input_value())
-                        # Verify owner-authenticated metadata persistence. This is NOT a
-                        # substitute for selecting a real native nonblank Session.
-                        response=context.request.post(origin+'api/philharmonie/request',data={'method':'POST','path':'binding','sessionId':'ci-metadata-session','body':{'program':program}})
-                        self.assertEqual(response.status,200,response.text())
-                        self.assertEqual(response.json()['binding']['program']['task']['id'],program['task']['id'])
                         page.screenshot(path=str(artifacts/'dsh-panel-desktop.png'),full_page=True)
+                        page.get_by_role('button',name='返回 DSH 会话',exact=True).click()
+                        def open_session(suffix):
+                            identity='phil-native-session-'+suffix
+                            row=page.locator('[data-row-key="session:'+identity+'"]')
+                            if not row.is_visible():
+                                for group in page.locator('[data-row-key^="workspace:"][aria-expanded="false"]').all():
+                                    group.click()
+                            expect(row).to_be_visible(timeout=15000)
+                            row.click()
+                            expect(row).to_have_attribute('aria-selected','true')
+                            header=page.locator('[data-philharmonie-header="'+identity+'"]')
+                            expect(header).to_be_visible()
+                            return identity,row,header
+                        a,row_a,header_a=open_session('a')
+                        expect(page.get_by_text('Inspect Bach task alpha.',exact=True)).to_be_visible()
+                        expect(header_a).to_contain_text('未关联',timeout=15000)
+                        header_a.click()
+                        expect(frame.locator('#session-label')).to_contain_text(a)
+                        program=json.loads(frame.locator('#source').input_value())
+                        program['task']['id']='native-task-a'
+                        program['task']['summary']='Native Session alpha Bach loop'
+                        frame.locator('details.source > summary').click()
+                        frame.locator('#source').fill(json.dumps(program))
+                        expect(frame.locator('#bind-session')).to_be_disabled()
+                        frame.locator('#apply').click()
+                        expect(frame.locator('#task')).to_have_value(program['task']['summary'])
+                        frame.locator('#bind-session').click()
+                        expect(frame.locator('#session-label')).to_contain_text('当前任务已关联')
+                        expect(frame.locator('#runs option')).to_have_count(1)
+                        frame.locator('#compile').click()
+                        expect(frame.locator('#compile-result')).to_contain_text('编译通过')
+                        frame.locator('#consent').check();frame.locator('#start').click()
+                        expect(frame.locator('#run-state')).to_have_text('completed',timeout=30000)
+                        run_a=frame.locator('#runs').input_value()
+                        page.get_by_role('button',name='返回 DSH 会话',exact=True).click()
+                        expect(row_a).to_have_attribute('aria-selected','true')
+                        expect(page.get_by_text('Inspect Bach task alpha.',exact=True)).to_be_visible()
+                        expect(header_a).to_contain_text('completed',timeout=15000)
+                        page.screenshot(path=str(artifacts/'dsh-session-header.png'),full_page=True)
+                        b,row_b,header_b=open_session('b')
+                        expect(header_b).to_contain_text('未关联',timeout=15000)
+                        header_b.click()
+                        expect(frame.locator('#session-label')).to_contain_text(b)
+                        program_b=json.loads(frame.locator('#source').input_value())
+                        program_b['task']['id']='native-task-b'
+                        program_b['task']['summary']='Native Session beta independent task'
+                        frame.locator('details.source > summary').click()
+                        frame.locator('#source').fill(json.dumps(program_b));frame.locator('#apply').click()
+                        expect(frame.locator('#task')).to_have_value(program_b['task']['summary'])
+                        frame.locator('#bind-session').click()
+                        expect(frame.locator('#session-label')).to_contain_text('当前任务已关联')
+                        expect(frame.locator('#runs option')).to_have_count(1)
+                        expect(frame.locator('#run-state')).to_have_text('未启动')
+                        expect(frame.locator('#cancel')).to_be_disabled()
+                        page.get_by_role('button',name='返回 DSH 会话',exact=True).click()
+                        open_session('a')[2].click()
+                        expect(frame.locator('#task')).to_have_value(program['task']['summary'])
+                        expect(frame.locator('#runs')).to_have_value(run_a)
+                        expect(frame.locator('#run-state')).to_have_text('completed')
+                        page.reload(wait_until='domcontentloaded')
+                        if not page.locator('iframe[title="Philharmonie Concert Hall"]').is_visible():
+                            open_session('a')[2].click()
+                        expect(frame.locator('#session-label')).to_contain_text(a)
+                        expect(frame.locator('#task')).to_have_value(program['task']['summary'])
+                        expect(frame.locator('#runs')).to_have_value(run_a)
+                        expect(frame.locator('#run-state')).to_have_text('completed')
+                        page.screenshot(path=str(artifacts/'dsh-session-restored.png'),full_page=True)
+                        page.get_by_role('button',name='全局大厅',exact=True).click()
+                        expect(frame.locator('#bind-session')).to_be_disabled()
+                        expect(page.locator('[data-philharmonie-session]')).to_have_attribute('data-philharmonie-session','')
                         page.set_viewport_size({'width':390,'height':844})
                         page.screenshot(path=str(artifacts/'dsh-panel-mobile.png'),full_page=True)
                         anonymous=browser.new_context()
