@@ -17,7 +17,15 @@ function changed() {
   $('source').value = JSON.stringify(program,null,2); renderGraph(); renderStart();
 }
 function context() { return program.task.context ||= {}; }
-function adopt(p) {program=clone(p);changed();renderEditor();renderRoster();}
+function resetRun() {
+  runId='';runStatus=null;$('run-state').textContent='未启动';$('decisions').replaceChildren();$('events').replaceChildren();
+  $('run-note').textContent='当前任务尚未选择运行。';$('runs').innerHTML='<option value="">选择运行</option>';
+}
+function adopt(p) {
+  const different=program?.task.id!==p.task.id;
+  program=clone(p);if(different)resetRun();changed();renderEditor();renderRoster();
+  if(config)void refreshRuns().catch(e=>error(e.message));
+}
 function renderEditor() {
   $('task').value=program.task.summary;
   $('deployment').value=context().deployment||'local';
@@ -51,6 +59,7 @@ function renderRoster() {
   $('roster').querySelectorAll('select').forEach(select=>select.onchange=()=>{const c=program.chairs[select.dataset.chair];if(select.value)c.model=select.value;else delete c.model;changed();});
 }
 function renderStart() {
+  $('bind-session').disabled=busy||sourceDirty||!config?.sessionId;
   $('start').disabled=busy||sourceDirty||!compiled?.ready||!$('consent').checked;
   const terminal=['completed','failed','cancelled'].includes(runStatus);
   for(const name of ['pause','resume','cancel'])$(name).disabled=busy||!runId||!runStatus||terminal;
@@ -73,20 +82,29 @@ async function library() {
   $('library').querySelectorAll('button').forEach(b=>b.onclick=()=>adopt(scores[+b.dataset.score].program));
 }
 async function refreshRuns() {
-  const runs=await api('runs');
+  const taskId=program.task.id;
+  const allRuns=await api('runs');if(taskId!==program.task.id)return;
+  const runs=config.embedded?allRuns.filter(r=>r.task.id===taskId):allRuns;
+  if(config.embedded&&runId&&!runs.some(r=>r.id===runId))resetRun();
   $('runs').innerHTML='<option value="">选择运行</option>'+runs.map(r=>`<option value="${r.id}" ${r.id===runId?'selected':''}>${esc(r.task.summary)} · ${esc(r.status)}</option>`).join('');
   if(!runId&&runs.length){runId=runs.at(-1).id;$('runs').value=runId;}
   if(runId)await inspect();
 }
 async function inspect() {
-  const id=runId;const run=await api('runs/'+id);if(id!==runId)return;
+  const id=runId,taskId=program.task.id;const run=await api('runs/'+id);
+  if(id!==runId||taskId!==program.task.id||(config.embedded&&run.task.id!==taskId))return;
   runStatus=run.status;$('run-state').textContent=run.status;renderStart();
   $('run-note').textContent=run.error|| (run.status==='needs_reconciliation'?'执行结果尚不确定。等待 worker 回执后恢复；如无法取得回执，请按文档在 CLI 核对，界面不会自动重放。':'运行 '+id+' · '+run.status);
   const decisions=run.events.filter(e=>e.type==='loop_decision');
   $('decisions').innerHTML=decisions.map(e=>`<div class="decision ${esc(e.decision)}"><span>${esc(e.address)} · #${e.iteration}</span><b>${esc(e.decision)}</b><small>metric ${esc(e.metric??'—')} / best ${esc(e.best_metric)}${e.error?' · '+esc(e.error):''}</small></div>`).join('');
   $('events').innerHTML=run.events.slice(-100).map(e=>`<li><b>${esc(e.type)}</b> ${esc(e.address||'')} <small>${new Date(e.time*1000).toLocaleTimeString()}</small></li>`).join('');
 }
-$('bind-session').onclick=()=>action(async()=>{await api('binding',{program});$('session-label').textContent=`当前任务已关联至 DSH Session: ${config.sessionId}`;});
+$('bind-session').onclick=()=>action(async()=>{
+  if(sourceDirty)throw Error('请先应用 JSON 编辑。');
+  const current=revision;const result=await api('binding',{program});config.binding=result.binding;
+  if(current!==revision)throw Error('已关联先前版本；曲谱已修改，请重新关联。');
+  $('session-label').textContent=`当前任务已关联至 DSH Session: ${config.sessionId}`;
+});
 $('task').oninput=()=>{program.task.summary=$('task').value;changed();};
 $('deployment').onchange=()=>{context().deployment=$('deployment').value;changed();};
 $('taste').onchange=()=>{context().taste=[...new Set($('taste').value.split(',').map(s=>s.trim()).filter(Boolean))];changed();};

@@ -4,22 +4,35 @@ window.__ModuleLoader__.load({id:'dsh-plugin-philharmonie',factory:(require)=>{
 const PANEL_ID='philharmonie.concert-hall';
 const inject=['slots','layout'];
 function install(React,ctx) {
+  const storageKey='philharmonie.session';
   let selectedSession=null;
+  try{const saved=globalThis.sessionStorage?.getItem(storageKey);if(/^[A-Za-z0-9_-]{1,160}$/.test(saved||''))selectedSession=saved;}catch{/* Storage may be disabled by the host. */}
   const listeners=new Set();
-  const select=session=>{selectedSession=session;for(const f of listeners)f();ctx.layout.selectPanel(PANEL_ID);};
+  const select=session=>{
+    selectedSession=session||null;
+    try{if(selectedSession)globalThis.sessionStorage?.setItem(storageKey,selectedSession);else globalThis.sessionStorage?.removeItem(storageKey);}catch{/* Navigation does not depend on storage. */}
+    for(const f of listeners)f();ctx.layout.selectPanel(PANEL_ID);
+  };
   function Panel(){
     const session=React.useSyncExternalStore(f=>{listeners.add(f);return()=>listeners.delete(f);},()=>selectedSession,()=>null);
     const url=new URL('api/philharmonie/frame',document.baseURI);if(session)url.searchParams.set('sessionId',session);
-    return React.createElement('iframe',{key:session||'global',src:url.href,title:'Philharmonie Concert Hall',style:{width:'100%',height:'100%',minHeight:'400px',border:0,display:'block',paddingTop:'var(--dsh-frame-top-clearance, 0px)'},referrerPolicy:'same-origin'});
+    const buttonStyle={font:'inherit',padding:'5px 10px',border:'1px solid currentColor',borderRadius:'5px',background:'transparent',color:'inherit',cursor:'pointer'};
+    return React.createElement('section',{'aria-label':'Concert Hall workspace',style:{height:'100%',minHeight:0,display:'flex',flexDirection:'column',paddingTop:'var(--dsh-frame-top-clearance, 0px)'}},
+      React.createElement('nav',{'aria-label':'Concert Hall navigation',style:{display:'flex',flexWrap:'wrap',alignItems:'center',gap:'8px',padding:'8px 12px',fontSize:'12px'}},
+        React.createElement('button',{type:'button',style:buttonStyle,onClick:()=>ctx.layout.selectPanel(null)},'返回 DSH 会话'),
+        session&&React.createElement('button',{type:'button',style:buttonStyle,onClick:()=>select(null)},'全局大厅'),
+        React.createElement('span',{'data-philharmonie-session':session||'',style:{overflowWrap:'anywhere'}},session?`Session · ${session}`:'全局大厅 · 尚未选择会话')),
+      React.createElement('iframe',{key:session||'global',src:url.href,title:'Philharmonie Concert Hall',style:{width:'100%',flex:1,minHeight:'400px',border:0,display:'block'},referrerPolicy:'same-origin'}));
   }
   function Header({sessionId}) {
     const [label,setLabel]=React.useState('Concert Hall');
     React.useEffect(()=>{
+      setLabel('Concert Hall · 读取中');
       let alive=true;const controller=new AbortController();
       const pull=async()=>{try{const response=await fetch(new URL('api/philharmonie/request',document.baseURI),{method:'POST',credentials:'same-origin',signal:controller.signal,headers:{'Content-Type':'application/json'},body:JSON.stringify({method:'GET',path:'session',sessionId})});if(!response.ok)throw Error('unavailable');const data=await response.json();if(alive)setLabel(data.binding?`${data.binding.program.task.summary.slice(0,22)} · ${data.run?.status||'已关联'}`:'Concert Hall · 未关联');}catch{if(alive)setLabel('Concert Hall · 状态不可用');}};
       void pull();const timer=setInterval(pull,3000);return()=>{alive=false;controller.abort();clearInterval(timer);};
     },[sessionId]);
-    return React.createElement('button',{type:'button',title:'打开乐团大厅；保留当前 DSH 会话',onClick:()=>select(sessionId),style:{font:'inherit',maxWidth:'180px',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',border:'1px solid currentColor',borderRadius:'5px',background:'transparent',color:'inherit',padding:'3px 8px',cursor:'pointer'}},'♮ '+label);
+    return React.createElement('button',{type:'button','aria-label':'打开此会话的 Concert Hall','data-philharmonie-header':sessionId,title:'打开乐团大厅；保留当前 DSH 会话',onClick:()=>select(sessionId),style:{font:'inherit',maxWidth:'180px',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',border:'1px solid currentColor',borderRadius:'5px',background:'transparent',color:'inherit',padding:'3px 8px',cursor:'pointer'}},'♮ '+label);
   }
   const Icon=({size=20})=>React.createElement('span',{'aria-hidden':true,style:{fontSize:size}},'♮');
   ctx.slots.inject('main',()=>ctx.slots.register({name:'main',key:PANEL_ID},Panel));
