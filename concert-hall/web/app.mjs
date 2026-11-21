@@ -29,6 +29,8 @@ window.addEventListener('pagehide',()=>{
 });
 
 const forms = {custom:'自由序曲',mozart_sonata:'Mozart · Sonata',beethoven_symphony:'Beethoven · Symphony',bach_fugue:'Bach · Fugue',bach_variation:'Bach · Progressive variation',brahms_variation:'Brahms · Variation'};
+let runtime=null, inspection=0;
+const labels={running:'演奏中',passed:'通过',failed:'失败',pending_receipt:'待核对',reconciled:'已人工核对',unknown:'状态未知'};
 let config, program, compiled = null, revision = 0, runId = '', busy = false, sourceDirty = false, runStatus = null;
 function error(message='') { $('error').hidden = !message; $('error').textContent = message; }
 async function api(path, body) {
@@ -45,7 +47,7 @@ function changed() {
 }
 function context() { return program.task.context ||= {}; }
 function resetRun() {
-  runId='';runStatus=null;$('run-state').textContent='未启动';$('decisions').replaceChildren();$('events').replaceChildren();
+  runId='';runStatus=null;runtime=null;inspection++;renderRuntime();$('run-state').textContent='未启动';$('decisions').replaceChildren();$('events').replaceChildren();
   $('run-note').textContent='当前任务尚未选择运行。';$('runs').innerHTML='<option value="">选择运行</option>';
 }
 function adopt(p) {
@@ -66,17 +68,44 @@ function renderEditor() {
   $('chapters').querySelectorAll('[data-form]').forEach(select=>select.onchange=()=>{program.score.chapters[+select.dataset.form].form=select.value;changed();});
   $('chapters').querySelectorAll('[data-remove]').forEach(button=>button.onclick=()=>{const [removed]=program.score.chapters.splice(+button.dataset.remove,1);for(const c of program.score.chapters)c.depends_on=c.depends_on.filter(d=>d!==removed.id);changed();renderEditor();});
 }
-function tree(node) {
-  const chair=node.chair ? program.chairs[node.chair] : null;
+function tree(node, key, states, chairs) {
+  const chair=node.chair ? chairs[node.chair] : null;
+  const step=states?.get(key);
+  const label=step?labels[step.status]:states&&node.kind==='movement'?'未执行':'';
   const children=node.kind==='loop'?[node.baseline,node.body]:node.children||[];
-  return `<li class="tree-${esc(node.kind)}"><div><span class="node-kind">${esc(node.kind)}</span><b>${esc(node.id)}</b>${chair?`<small>${esc(node.chair)} / ${esc(chair.section)}</small>`:''}${node.kind==='loop'?`<small>≤ ${node.limits.max_iterations} variations · ${esc(node.metric.key)} ${esc(node.metric.direction)} · keep / discard / crash</small>`:''}</div>${children.length?`<ul>${children.map(tree).join('')}</ul>`:''}</li>`;
+  return `<li class="tree-${esc(node.kind)}"${step?` data-step-state="${esc(step.status)}"`:""}><div><span class="node-kind">${esc(node.kind)}</span><b>${esc(node.id)}</b>${chair?`<small>${esc(node.chair)} / ${esc(chair.section)}</small>`:''}${label?`<small>${esc(label)}${node.verify_rung?' · '+esc(node.verify_rung):''}</small>`:''}${node.kind==='loop'?`<small>≤ ${node.limits.max_iterations} variations · ${esc(node.metric.key)} ${esc(node.metric.direction)} · keep / discard / crash</small>`:''}</div>${children.length?`<ul>${children.map((child,i)=>tree(child,key+'/'+(node.kind==='loop'?(i?'body':'baseline'):child.id),states,chairs)).join('')}</ul>`:''}</li>`;
 }
 function renderGraph() {
   $('ribbon-title').textContent=program?`${program.score.id} · ${program.score.chapters.length} chapters`:'Concert Hall';
   $('ribbon-status').textContent=compiled ? (compiled.ready?'已编译 · 可执行':'已编译 · 路由未就绪') : '草稿 · 未编译';
   if (!program)return;
-  $('graph').innerHTML=`<div class="score-graph">${program.score.chapters.map(c=>`<article><p class="eyebrow">${esc(forms[c.form]||c.form)}</p><h3>${esc(c.name)}</h3><p class="muted">${c.depends_on.length?'← '+esc(c.depends_on.join(', ')):'序章 / 无章节依赖'}</p><ul class="tree">${tree(c.body)}</ul></article>`).join('<span class="chapter-arrow" aria-hidden="true">→</span>')}</div>`;
+  $('graph').innerHTML=graphMarkup(program.score.chapters,null,program.chairs);
 }
+function graphMarkup(chapters,states,chairs,activeChapter) {
+  return `<div class="score-graph">${chapters.map(c=>`<article${c.id===activeChapter?' data-current-chapter="true"':''}><p class="eyebrow">${esc(forms[c.form]||c.form)}</p><h3>${esc(c.name)}</h3><p class="muted">${c.depends_on.length?'← '+esc(c.depends_on.join(', ')):'序章 / 无章节依赖'}</p><ul class="tree">${tree(c.body,c.id,states,chairs)}</ul></article>`).join('<span class="chapter-arrow" aria-hidden="true">→</span>')}</div>`;
+}
+function renderRuntime() {
+  $('runtime-board').hidden=!runtime;
+  if(!runtime)return;
+  const {progress}=runtime;
+  const states=new Map();
+  for(const step of progress.steps){
+    const prior=states.get(step.key);
+    if(!prior||['running','pending_receipt'].includes(step.status)||(!['running','pending_receipt'].includes(prior.status)&&step.index>prior.index))states.set(step.key,step);
+  }
+  $('runtime-title').textContent=[runtime.task.summary,progress.chapter||'乐章未知',runtime.status==='needs_reconciliation'?'待核对':runtime.status,progress.active?`${progress.active} 个活动步骤`:null].filter(Boolean).join(' · ');
+  $('runtime-graph').innerHTML=graphMarkup(runtime.chapters,states,runtime.chairs,progress.active?progress.chapter_id:null);
+  $('snare-results').innerHTML=['lint','unit','e2e','security'].map(rung=>{
+    const steps=progress.timeline.filter(step=>step.rung===rung&&['passed','failed'].includes(step.status));
+    const declared=config.snare_coverage?.[rung];
+    const coverage=declared===undefined?'声明未知':declared?'已声明':'未声明';
+    const result=steps.length?`${steps.filter(step=>step.status==='passed').length} 次通过 · ${steps.filter(step=>step.status==='failed').length} 次失败`:'未执行';
+    return `<li><b>${rung}</b> · ${coverage} · ${result}</li>`;
+  }).join('');
+  const pending=progress.steps.filter(step=>['pending_receipt','reconciled'].includes(step.status));
+  $('receipt-status').textContent=pending.map(step=>`${step.address} · ${labels[step.status]}${step.receipt_status?' · 已收到回执 '+step.receipt_status:step.status==='pending_receipt'?' · 尚无已核验的回执':''}${step.evidence?' · '+step.evidence:''}`).join('\n');
+}
+
 function renderRoster() {
   $('roster').innerHTML=Object.entries(program.chairs).map(([id,c])=>{
     const tier=config.tiers[c.section];const route=compiled?.chairs[id]?.routing;
@@ -108,24 +137,36 @@ async function library() {
   $('library').innerHTML=scores.length?scores.map((s,i)=>`<button data-score="${i}">${esc(s.program.task.summary)}<small>${esc(s.program.score.id)}</small></button>`).join(''):'<p class="muted">保存你的第一份曲谱。</p>';
   $('library').querySelectorAll('button').forEach(b=>b.onclick=()=>adopt(scores[+b.dataset.score].program));
 }
+const selectionKey=()=>`philharmonie.run.${config.sessionId||'global'}.${program.task.id}`;
 async function refreshRuns() {
   const taskId=program.task.id;
   const allRuns=await api('runs');if(taskId!==program.task.id)return;
   const runs=config.embedded?allRuns.filter(r=>r.task.id===taskId):allRuns;
   if(config.embedded&&runId&&!runs.some(r=>r.id===runId))resetRun();
+  if(!runId){
+    try{const saved=sessionStorage.getItem(selectionKey());if(runs.some(run=>run.id===saved))runId=saved;}catch{/* Storage is optional. */}
+  }
   $('runs').innerHTML='<option value="">选择运行</option>'+runs.map(r=>`<option value="${r.id}" ${r.id===runId?'selected':''}>${esc(r.task.summary)} · ${esc(r.status)}</option>`).join('');
   if(!runId&&runs.length){runId=runs.at(-1).id;$('runs').value=runId;}
   if(runId)await inspect();
 }
 async function inspect() {
-  const id=runId,taskId=program.task.id;const run=await api('runs/'+id);
-  if(id!==runId||taskId!==program.task.id||(config.embedded&&run.task.id!==taskId))return;
-  music.observe(id,run,family());
+  const request=++inspection,id=runId,taskId=program.task.id;const run=await api('runs/'+id);
+  if(request!==inspection||id!==runId||taskId!==program.task.id||(config.embedded&&run.task.id!==taskId))return;
+  runtime=run;renderRuntime();
+  try{sessionStorage.setItem(selectionKey(),id);}catch{/* Storage is optional. */}
+  const verdicts=new Map(run.progress.timeline.filter(step=>step.rung&&['passed','failed'].includes(step.status)).map(step=>[step.index,step.status]));
+  music.observe(id,{...run,events:run.events.map((event,index)=>verdicts.has(index)?{type:'hook_result',outcome:verdicts.get(index)==='passed'?'pass':'fail'}:event)},run.task.context?.taste?.includes('ai4science')?'ai4science':'coding');
   runStatus=run.status;$('run-state').textContent=run.status;renderStart();
-  $('run-note').textContent=run.error|| (run.status==='needs_reconciliation'?'执行结果尚不确定。等待 worker 回执后恢复；如无法取得回执，请按文档在 CLI 核对，界面不会自动重放。':'运行 '+id+' · '+run.status);
+  $('run-note').textContent=run.error|| (run.status==='needs_reconciliation'?'有回执时可恢复并读取结果。无回执时，请先确认 worker 已停止，再使用 loop_runner.py reconcile --state <运行目录> --address <步骤地址> --note <证据> --confirm-stopped。':'运行 '+id+' · '+run.status);
   const decisions=run.events.filter(e=>e.type==='loop_decision');
   $('decisions').innerHTML=decisions.map(e=>`<div class="decision ${esc(e.decision)}"><span>${esc(e.address)} · #${e.iteration}</span><b>${esc(e.decision)}</b><small>metric ${esc(e.metric??'—')} / best ${esc(e.best_metric)}${e.error?' · '+esc(e.error):''}</small></div>`).join('');
-  $('events').innerHTML=run.events.slice(-100).map(e=>`<li><b>${esc(e.type)}</b> ${esc(e.address||'')} <small>${new Date(e.time*1000).toLocaleTimeString()}</small></li>`).join('');
+  const steps=new Map(run.progress.timeline.map(step=>[step.index,step]));
+  const offset=Math.max(0,run.events.length-100);
+  $('events').innerHTML=run.events.slice(offset).map((e,i)=>{
+    const step=steps.get(i+offset);
+    return `<li><b>${esc(e.type)}</b> ${esc(e.address||'')}${step?` · ${esc(step.rung||'未标记')} · ${esc(labels[step.status])}`:''}${e.error?` · ${esc(e.error)}`:''} <small>${e.time?new Date(e.time*1000).toLocaleTimeString():''}</small></li>`;
+  }).join('');
 }
 $('bind-session').onclick=()=>action(async()=>{
   if(sourceDirty)throw Error('请先应用 JSON 编辑。');
@@ -148,7 +189,7 @@ $('example').onclick=()=>action(async()=>{adopt(await api('example'));$('compile
 $('consent').onchange=renderStart;
 $('start').onclick=()=>action(async()=>{if(!compiled?.ready||!$('consent').checked)return;const result=await api('runs',{program});runId=result.id;music.begin(runId);sound.play('start',family());$('consent').checked=false;await refreshRuns();});
 for(const name of ['pause','resume','cancel'])$(name).onclick=()=>action(async()=>{await api('runs/'+runId,{action:name});await inspect();});
-$('runs').onchange=()=>{runId=$('runs').value;if(runId)void action(inspect);};
+$('runs').onchange=()=>{const selected=$('runs').value;resetRun();runId=selected;void action(refreshRuns);};
 async function boot() {
   config=await api('config');$('mode').textContent=config.demo?'离线演示 · 真实本地执行':'本地任务目录';$('root').textContent='任务目录：'+config.root;
   $('session-binding').hidden=!config.embedded;

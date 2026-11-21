@@ -26,8 +26,11 @@ export function install(React,ctx) {
     const [label,setLabel]=React.useState('Concert Hall');
     React.useEffect(()=>{
       setLabel('Concert Hall · 读取中');
-      let alive=true;const controller=new AbortController();
-      const pull=async()=>{try{const response=await fetch(new URL('api/philharmonie/request',document.baseURI),{method:'POST',credentials:'same-origin',signal:controller.signal,headers:{'Content-Type':'application/json'},body:JSON.stringify({method:'GET',path:'session',sessionId})});if(!response.ok)throw Error('unavailable');const data=await response.json();if(alive)setLabel(data.binding?`${data.binding.program.task.summary.slice(0,22)} · ${data.run?.status||'已关联'}`:'Concert Hall · 未关联');}catch{if(alive)setLabel('Concert Hall · 状态不可用');}};
+      let alive=true,inFlight=false;const controller=new AbortController();
+      const pull=async()=>{if(inFlight)return;inFlight=true;try{const response=await fetch(new URL('api/philharmonie/request',document.baseURI),{method:'POST',credentials:'same-origin',signal:controller.signal,headers:{'Content-Type':'application/json'},body:JSON.stringify({method:'GET',path:'session',sessionId})});if(!response.ok)throw Error('unavailable');const data=await response.json();const run=data.run;
+        const state=run?.status==='needs_reconciliation'?'待核对':run?.active>1?`${run.active} 个步骤进行中`:run?.status||'已关联';
+        const chapter=run?.chapter||data.binding?.program.task.summary;
+        if(alive)setLabel(data.binding?[state,chapter].filter(Boolean).join(' · '):'Concert Hall · 未关联');}catch{if(alive)setLabel('Concert Hall · 状态不可用');}finally{inFlight=false;}};
       void pull();const timer=setInterval(pull,3000);return()=>{alive=false;controller.abort();clearInterval(timer);};
     },[sessionId]);
     return React.createElement('button',{type:'button','aria-label':'打开此会话的 Concert Hall','data-philharmonie-header':sessionId,title:'打开乐团大厅；保留当前 DSH 会话',onClick:()=>select(sessionId),style:{font:'inherit',maxWidth:'180px',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',border:'1px solid currentColor',borderRadius:'5px',background:'transparent',color:'inherit',padding:'3px 8px',cursor:'pointer'}},'♮ '+label);

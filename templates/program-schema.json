@@ -282,6 +282,9 @@
               "type": "string",
               "pattern": "^[A-Za-z][A-Za-z0-9_.-]{0,63}$"
             },
+            "verify_rung": {
+              "enum": ["lint", "unit", "e2e", "security"]
+            },
             "chair": {
               "type": "string",
               "pattern": "^[A-Za-z][A-Za-z0-9_.-]{0,63}$"

@@ -41,6 +41,7 @@
             "kind": "movement",
             "id": "verify",
             "chair": "snare",
+            "verify_rung": "unit",
             "argv": [
               "python3",
               "SPEC.py"
@@ -74,6 +75,7 @@
                 "kind": "movement",
                 "id": "verify",
                 "chair": "snare",
+                "verify_rung": "unit",
                 "argv": [
                   "python3",
                   "SPEC.py"
@@ -99,6 +101,7 @@
           "kind": "movement",
           "id": "final-check",
           "chair": "snare",
+          "verify_rung": "unit",
           "argv": [
             "python3",
             "SPEC.py"

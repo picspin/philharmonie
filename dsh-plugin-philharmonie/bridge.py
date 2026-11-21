@@ -32,7 +32,13 @@ class Bridge:
     def session(self, identity):
         binding = self.bindings().get(identity)
         runs = [r for r in self.app.runs() if binding and r['task']['id'] == binding['program']['task']['id']]
-        return dict(sessionId=identity, binding=binding, run=runs[-1] if runs else None)
+        run = None
+        if runs:
+            selected = next((r for r in reversed(runs) if r['status'] not in ('completed', 'failed', 'cancelled')), runs[-1])
+            details = self.app.inspect(selected['id'])
+            run = {**selected, 'status': details['status'], 'chapter': details['progress']['chapter'],
+                   'active': details['progress']['active']}
+        return dict(sessionId=identity, binding=binding, run=run)
 
     def request(self, request):
         session = request.get('sessionId')

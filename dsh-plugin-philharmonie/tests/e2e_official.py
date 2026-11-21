@@ -145,6 +145,11 @@ class OfficialDshBrowserTests(unittest.TestCase):
                         program=json.loads(frame.locator('#source').input_value())
                         program['task']['id']='native-task-a'
                         program['task']['summary']='Native Session alpha Bach loop'
+                        fixture = json.loads((REPO/'examples/bach-search/program.json').read_text())
+                        self.assertEqual(program['score'], fixture['score'])
+                        # Keep one observed movement open across a polling interval.
+                        mutate = program['score']['chapters'][0]['body']['body']['children'][0]
+                        mutate['argv'][2] = 'import time;time.sleep(3);' + mutate['argv'][2]
                         frame.locator('details.source > summary').click()
                         frame.locator('#source').fill(json.dumps(program))
                         expect(frame.locator('#bind-session')).to_be_disabled()
@@ -160,7 +165,13 @@ class OfficialDshBrowserTests(unittest.TestCase):
                         frame.locator('#compile').click()
                         expect(frame.locator('#compile-result')).to_contain_text('编译通过')
                         frame.locator('#consent').check();frame.locator('#start').click()
+                        expect(frame.locator('#runtime-graph [data-step-state=running]')).to_be_visible(timeout=10000)
                         expect(frame.locator('#run-state')).to_have_text('completed',timeout=30000)
+                        expect(frame.locator('#runtime-title')).to_contain_text('Verify the retained best')
+                        expect(frame.locator('#snare-results')).to_contain_text('unit · 未声明 · 5 次通过 · 1 次失败')
+                        frame.locator('#events').locator('..').locator('summary').click()
+                        expect(frame.locator('#events').get_by_text('variations/iteration-2/verify · unit · 失败',exact=False)).to_be_visible()
+                        expect(frame.locator('.decision.keep').last).to_contain_text('metric 11 / best 11')
                         run_a=frame.locator('#runs').input_value()
                         page.get_by_role('button',name='返回 DSH 会话',exact=True).click()
                         expect(row_a).to_have_attribute('aria-selected','true')
@@ -194,6 +205,7 @@ class OfficialDshBrowserTests(unittest.TestCase):
                         expect(frame.locator('#task')).to_have_value(program['task']['summary'])
                         expect(frame.locator('#runs')).to_have_value(run_a)
                         expect(frame.locator('#run-state')).to_have_text('completed')
+                        expect(frame.locator('#runtime-title')).to_contain_text('Verify the retained best')
                         page.screenshot(path=str(artifacts/'dsh-session-restored.png'),full_page=True)
                         page.get_by_role('button',name='全局大厅',exact=True).click()
                         expect(frame.locator('#bind-session')).to_be_disabled()
