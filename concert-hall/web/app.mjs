@@ -29,7 +29,7 @@ window.addEventListener('pagehide',()=>{
 });
 
 const forms = {custom:'自由序曲',mozart_sonata:'Mozart · Sonata',beethoven_symphony:'Beethoven · Symphony',bach_fugue:'Bach · Fugue',bach_variation:'Bach · Progressive variation',brahms_variation:'Brahms · Variation'};
-let runtime=null, inspection=0;
+let runtime=null, inspection=0, eventLimit=100;
 const labels={running:'演奏中',passed:'通过',failed:'失败',pending_receipt:'待核对',reconciled:'已人工核对',unknown:'状态未知'};
 let config, program, compiled = null, revision = 0, runId = '', busy = false, sourceDirty = false, runStatus = null;
 function error(message='') { $('error').hidden = !message; $('error').textContent = message; }
@@ -47,7 +47,7 @@ function changed() {
 }
 function context() { return program.task.context ||= {}; }
 function resetRun() {
-  runId='';runStatus=null;runtime=null;inspection++;renderRuntime();$('run-state').textContent='未启动';$('decisions').replaceChildren();$('events').replaceChildren();
+  runId='';runStatus=null;runtime=null;inspection++;eventLimit=100;renderRuntime();renderEvents();$('run-state').textContent='未启动';$('decisions').replaceChildren();$('events').replaceChildren();
   $('run-note').textContent='当前任务尚未选择运行。';$('runs').innerHTML='<option value="">选择运行</option>';
 }
 function adopt(p) {
@@ -153,7 +153,8 @@ async function refreshRuns() {
 async function inspect() {
   const request=++inspection,id=runId,taskId=program.task.id;const run=await api('runs/'+id);
   if(request!==inspection||id!==runId||taskId!==program.task.id||(config.embedded&&run.task.id!==taskId))return;
-  runtime=run;renderRuntime();
+  if(runtime?.run_id!==run.run_id)eventLimit=100;
+  runtime=run;renderRuntime();renderEvents();
   try{sessionStorage.setItem(selectionKey(),id);}catch{/* Storage is optional. */}
   const verdicts=new Map(run.progress.timeline.filter(step=>step.rung&&['passed','failed'].includes(step.status)).map(step=>[step.index,step.status]));
   music.observe(id,{...run,events:run.events.map((event,index)=>verdicts.has(index)?{type:'hook_result',outcome:verdicts.get(index)==='passed'?'pass':'fail'}:event)},run.task.context?.taste?.includes('ai4science')?'ai4science':'coding');
@@ -161,13 +162,19 @@ async function inspect() {
   $('run-note').textContent=run.error|| (run.status==='needs_reconciliation'?'有回执时可恢复并读取结果。无回执时，请先确认 worker 已停止，再使用 loop_runner.py reconcile --state <运行目录> --address <步骤地址> --note <证据> --confirm-stopped。':'运行 '+id+' · '+run.status);
   const decisions=run.events.filter(e=>e.type==='loop_decision');
   $('decisions').innerHTML=decisions.map(e=>`<div class="decision ${esc(e.decision)}"><span>${esc(e.address)} · #${e.iteration}</span><b>${esc(e.decision)}</b><small>metric ${esc(e.metric??'—')} / best ${esc(e.best_metric)}${e.error?' · '+esc(e.error):''}</small></div>`).join('');
+}
+function renderEvents(){
+  $('earlier-events').hidden=!runtime||runtime.events.length<=eventLimit;
+  if(!runtime)return;
+  const run=runtime;
   const steps=new Map(run.progress.timeline.map(step=>[step.index,step]));
-  const offset=Math.max(0,run.events.length-100);
+  const offset=Math.max(0,run.events.length-eventLimit);
   $('events').innerHTML=run.events.slice(offset).map((e,i)=>{
     const step=steps.get(i+offset);
     return `<li><b>${esc(e.type)}</b> ${esc(e.address||'')}${step?` · ${esc(step.rung||'未标记')} · ${esc(labels[step.status])}`:''}${e.error?` · ${esc(e.error)}`:''} <small>${e.time?new Date(e.time*1000).toLocaleTimeString():''}</small></li>`;
   }).join('');
 }
+$('earlier-events').onclick=()=>{eventLimit+=100;renderEvents();};
 $('bind-session').onclick=()=>action(async()=>{
   if(sourceDirty)throw Error('请先应用 JSON 编辑。');
   const current=revision;const result=await api('binding',{program});config.binding=result.binding;
