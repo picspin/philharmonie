@@ -18,9 +18,12 @@ from urllib.parse import urlsplit
 
 REPO = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO / 'scripts'))
-from compile_score import compile_program
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from compile_score import compile_program, digest
 from score_composer import read_json, SECTION_TIERS, registry_errors
 from loop_runner import Runner, atomic_json
+from run_progress import project_run
+from snare_score import score as snare_score
 
 ID = re.compile(r'^[a-f0-9]{32}$')
 
@@ -54,7 +57,12 @@ class Workbench:
         return self.state / kind / identity
 
     def config(self):
-        return dict(root=str(self.root), demo=self.demo, registry=self.registry,
+        try:
+            _, rungs = snare_score(self.root)
+            coverage = {name: bool(command) for name, command in rungs.items()}
+        except (OSError, UnicodeError):
+            coverage = None
+        return dict(root=str(self.root), demo=self.demo, registry=self.registry, snare_coverage=coverage,
                     tiers=SECTION_TIERS, admit=False)
 
     def compile(self, program):
@@ -75,7 +83,7 @@ class Workbench:
         for p in sorted((self.state / 'runs').iterdir()):
             if ID.fullmatch(p.name):
                 result.append(dict(id=p.name, **self.inspect(p.name, events=False)))
-        return result
+        return sorted(result, key=lambda run: (run['created_at'], run['id']))
 
     def inspect(self, identity, events=True):
         path = self.resource('runs', identity)
@@ -84,9 +92,25 @@ class Workbench:
         r = Runner(path)
         try:
             result = dict(**r.status(), task=r.plan['source']['task'],
-                          chapters=r.plan['chapters'])
+                          chapters=r.plan['chapters'], created_at=r.get('created', 0))
             if events:
                 result['events'] = r.events()
+                result['progress'] = project_run(r.plan, result['events'], result['status'])
+                for step in result['progress']['steps']:
+                    execution = step.get('execution_id')
+                    if step['status'] != 'pending_receipt' or not execution or not ID.fullmatch(execution):
+                        continue
+                    job_dir = path / 'jobs' / execution
+                    try:
+                        job = read_json(job_dir / 'job.json')
+                        receipt = read_json(job_dir / 'receipt.json')
+                        if (isinstance(job, dict) and isinstance(receipt, dict)
+                                and job.get('execution_id') == execution
+                                and receipt.get('execution_id') == execution and receipt.get('job_hash') == digest(job)):
+                            step['receipt_status'] = receipt.get('status')
+                    except (OSError, ValueError):
+                        pass
+                result['chairs'] = {name: {'section': chair['section']} for name, chair in r.plan['chairs'].items()}
             return result
         finally:
             r.close()

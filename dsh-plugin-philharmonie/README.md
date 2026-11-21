@@ -173,3 +173,25 @@ This document-local channel accepts only the predefined motif names; it does
 not execute a hook or load URLs. Existing CLI-only hooks are not automatically
 streamed into the Hall: their adapter must publish the outcome. Visual status
 remains the authoritative, accessible feedback.
+
+
+## Live run graph and Snare
+
+The run graph displays the saved plan for the selected run. It marks active
+steps, keeps parallel steps visible together, and shows failed attempts and Bach
+variation decisions in the run timeline. The Session header summarizes the
+current chapter. The Hall restores a selected run for each task in the current
+browser tab while that run remains available.
+
+Set the optional `verify_rung` on a movement to `lint`, `unit`, `e2e`, or
+`security`. Snare displays coverage from the task root's `AGENTS.md` separately
+from the pass and failure counts recorded for marked movements. The score's
+existing command and runner controls govern execution. Unmarked movements still
+appear in the timeline. Sound cues follow the same recorded verification results.
+
+If a worker receipt is uncertain, inspect the addresses and receipt evidence in
+the graph. Resume can consume a valid receipt. If the worker has stopped and no
+receipt is available, use the existing CLI reconciliation procedure in the
+[runner guide](../references/composite-runner.md). Finish or recover runs with
+their original runtime before upgrading when its fingerprint differs. Historical
+logs remain readable and incomplete evidence is shown as unknown.
