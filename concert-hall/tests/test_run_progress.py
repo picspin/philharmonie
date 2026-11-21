@@ -4,7 +4,7 @@ import sys
 import unittest
 
 ROOT = Path(__file__).resolve().parents[2]
-sys.path.insert(0, str(ROOT / 'scripts'))
+sys.path.insert(0, str(ROOT / 'concert-hall'))
 from run_progress import project_run
 
 

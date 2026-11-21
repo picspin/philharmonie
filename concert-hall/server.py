@@ -18,6 +18,7 @@ from urllib.parse import urlsplit
 
 REPO = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO / 'scripts'))
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 from compile_score import compile_program, digest
 from score_composer import read_json, SECTION_TIERS, registry_errors
 from loop_runner import Runner, atomic_json

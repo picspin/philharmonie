@@ -10,6 +10,7 @@ from pathlib import Path
 import queue
 import re
 import signal
+import shutil
 import socket
 import subprocess
 import tempfile
@@ -137,6 +138,9 @@ class OfficialDshBrowserTests(unittest.TestCase):
                             header=page.locator('[data-philharmonie-header="'+identity+'"]')
                             expect(header).to_be_visible()
                             return identity,row,header
+                        # The global demo retained the winning candidate. Restore the
+                        # disposable seed so the independent Session starts from the same baseline.
+                        shutil.copyfile(REPO/'examples/bach-search/candidate.py',base/'hall-state/demo-task/candidate.py')
                         a,row_a,header_a=open_session('a')
                         expect(page.get_by_text('Inspect Bach task alpha.',exact=True)).to_be_visible()
                         expect(header_a).to_contain_text('未关联',timeout=15000)
