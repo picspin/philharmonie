@@ -1,6 +1,33 @@
+import {SoundDesk, RunMusic} from './sound.mjs';
 import {esc, architectureChoices, clone, chapter, fresh} from './composer.mjs';
 const $ = id => document.getElementById(id);
 const token = document.querySelector('meta[name="hall-token"]').content;
+const sound=new SoundDesk();
+const family=()=>program?.task.context?.taste?.includes('ai4science')?'ai4science':'coding';
+const music=new RunMusic((cue,kind)=>sound.play(cue,kind));
+try{const saved=localStorage.getItem('philharmonie.sound.volume');if(saved!==null)sound.setVolume(Number(saved));}catch{/* Optional preference storage. */}
+$('sound-volume').value=String(Math.round(sound.volume/.35*100));
+$('sound-toggle').onclick=async()=>{
+  const button=$('sound-toggle');button.disabled=true;
+  if(sound.enabled)sound.disable();else if(!await sound.enable())$('sound-note').textContent='当前浏览器无法启用音效；编排照常运行。';
+  button.disabled=false;button.setAttribute('aria-pressed',String(sound.enabled));button.textContent=sound.enabled?'关闭音效':'开启音效';
+  $('sound-preview').disabled=!sound.enabled;
+  if(sound.enabled){$('sound-note').textContent='只播放新事件；后台自动静音。';sound.play('start',family());}
+};
+$('sound-volume').oninput=()=>{
+  sound.setVolume(Number($('sound-volume').value)/100*.35);
+  try{localStorage.setItem('philharmonie.sound.volume',String(sound.volume));}catch{/* Optional preference storage. */}
+};
+$('sound-preview').onclick=()=>sound.play('start',family());
+$('sound-detail').onchange=()=>{music.detailed=$('sound-detail').checked;};
+document.addEventListener('visibilitychange',()=>{if(document.hidden)sound.hush();});
+// A trusted UI integration may announce a hook outcome. Only named motifs are
+// consumed; no URLs, commands, or orchestration actions enter this channel.
+document.addEventListener('philharmonie:cue',event=>sound.play(event.detail?.cue,family()));
+window.addEventListener('pagehide',()=>{
+  sound.dispose();$('sound-toggle').setAttribute('aria-pressed','false');$('sound-toggle').textContent='开启音效';$('sound-preview').disabled=true;
+});
+
 const forms = {custom:'自由序曲',mozart_sonata:'Mozart · Sonata',beethoven_symphony:'Beethoven · Symphony',bach_fugue:'Bach · Fugue',bach_variation:'Bach · Progressive variation',brahms_variation:'Brahms · Variation'};
 let config, program, compiled = null, revision = 0, runId = '', busy = false, sourceDirty = false, runStatus = null;
 function error(message='') { $('error').hidden = !message; $('error').textContent = message; }
@@ -68,13 +95,13 @@ function renderStart() {
 }
 async function action(fn) {
   if(busy)return;busy=true;error();renderStart();
-  try{await fn();}catch(e){error(e.message);}finally{busy=false;renderStart();}
+  try{await fn();}catch(e){error(e.message);sound.play('failure',family());}finally{busy=false;renderStart();}
 }
 async function compile() {
   if(sourceDirty)throw new Error('请先应用 JSON 编辑，再编译。');
   const current=revision;const result=await api('compile',{program});
   if(current!==revision)throw new Error('曲谱在编译期间已修改，请重新编译。');
-  compiled=result;$('compile-result').textContent=result.ready?'编译通过。请审阅执行范围后确认启动。':result.diagnostics.join('；');renderGraph();renderRoster();
+  compiled=result;sound.play(result.ready?'hook_pass':'hook_block',family());$('compile-result').textContent=result.ready?'编译通过。请审阅执行范围后确认启动。':result.diagnostics.join('；');renderGraph();renderRoster();
 }
 async function library() {
   const scores=await api('scores');
@@ -93,6 +120,7 @@ async function refreshRuns() {
 async function inspect() {
   const id=runId,taskId=program.task.id;const run=await api('runs/'+id);
   if(id!==runId||taskId!==program.task.id||(config.embedded&&run.task.id!==taskId))return;
+  music.observe(id,run,family());
   runStatus=run.status;$('run-state').textContent=run.status;renderStart();
   $('run-note').textContent=run.error|| (run.status==='needs_reconciliation'?'执行结果尚不确定。等待 worker 回执后恢复；如无法取得回执，请按文档在 CLI 核对，界面不会自动重放。':'运行 '+id+' · '+run.status);
   const decisions=run.events.filter(e=>e.type==='loop_decision');
@@ -103,6 +131,7 @@ $('bind-session').onclick=()=>action(async()=>{
   if(sourceDirty)throw Error('请先应用 JSON 编辑。');
   const current=revision;const result=await api('binding',{program});config.binding=result.binding;
   if(current!==revision)throw Error('已关联先前版本；曲谱已修改，请重新关联。');
+  sound.play('saved',family());
   $('session-label').textContent=`当前任务已关联至 DSH Session: ${config.sessionId}`;
 });
 $('task').oninput=()=>{program.task.summary=$('task').value;changed();};
@@ -114,10 +143,10 @@ $('add').onclick=()=>{let n=program.score.chapters.length+1;while(program.score.
 $('source').oninput=()=>{sourceDirty=true;compiled=null;$('consent').checked=false;$('compile-result').textContent='有未应用的 JSON 编辑，请先应用。';renderGraph();renderStart();};
 $('apply').onclick=()=>action(async()=>{const p=JSON.parse($('source').value);await api('compile',{program:p});adopt(p);});
 $('compile').onclick=()=>action(compile);
-$('save').onclick=()=>action(async()=>{if(sourceDirty)throw new Error('请先应用 JSON 编辑。');await api('scores',{program});await library();$('compile-result').textContent='曲谱已保存。';});
+$('save').onclick=()=>action(async()=>{if(sourceDirty)throw new Error('请先应用 JSON 编辑。');await api('scores',{program});await library();$('compile-result').textContent='曲谱已保存。';sound.play('saved',family());});
 $('example').onclick=()=>action(async()=>{adopt(await api('example'));$('compile-result').textContent=config.demo?'Bach 离线示例：命令已配套当前 demo 根目录。':'此示例需要 candidate.py 和 SPEC.py；请确认目标目录已包含对应文件。';});
 $('consent').onchange=renderStart;
-$('start').onclick=()=>action(async()=>{if(!compiled?.ready||!$('consent').checked)return;const result=await api('runs',{program});runId=result.id;$('consent').checked=false;await refreshRuns();});
+$('start').onclick=()=>action(async()=>{if(!compiled?.ready||!$('consent').checked)return;const result=await api('runs',{program});runId=result.id;music.begin(runId);sound.play('start',family());$('consent').checked=false;await refreshRuns();});
 for(const name of ['pause','resume','cancel'])$(name).onclick=()=>action(async()=>{await api('runs/'+runId,{action:name});await inspect();});
 $('runs').onchange=()=>{runId=$('runs').value;if(runId)void action(inspect);};
 async function boot() {
