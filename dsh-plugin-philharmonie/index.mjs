@@ -82,7 +82,7 @@ export async function apply(ctx,input) {
   await bridge.ready;
   const handler=createHandler(config,{llm:ctx.llm,bridge});
   const routes=[['request',['POST'],handler],['frame',['GET'],async()=>new Response(await frameHtml(),{headers:{'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store'}})]];
-  for(const file of ['styles.css','app.mjs','composer.mjs'])routes.push([file,['GET'],async()=>new Response(await readFile(new URL('concert-hall/web/'+file,root)),{headers:{'Content-Type':file.endsWith('.css')?'text/css':'text/javascript','Cache-Control':'no-store'}})]);
+  for(const file of ['styles.css','app.mjs','composer.mjs','sound.mjs'])routes.push([file,['GET'],async()=>new Response(await readFile(new URL('concert-hall/web/'+file,root)),{headers:{'Content-Type':file.endsWith('.css')?'text/css':'text/javascript','Cache-Control':'no-store'}})]);
   routes.push(['frame.mjs',['GET'],async()=>new Response(await readFile(new URL('./frame.mjs',import.meta.url)),{headers:{'Content-Type':'text/javascript','Cache-Control':'no-store'}})]);
   for(const [path,methods,fetch] of routes)ctx.effect(()=>ctx.connection.fetch.register({path:PREFIX+path,methods,requestBody:'buffered',fetch}),'philharmonie: '+path);
 }

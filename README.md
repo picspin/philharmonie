@@ -309,3 +309,13 @@ and nonblank Session-header entry, independent task binding, local loop executio
 return navigation and reload restoration. It uses closed offline Session
 recordings through DSH's persistence provider; provider-backed agent execution
 still uses the existing Hall adapters.
+
+
+## Event sound desk / 事件音效
+
+The Concert Hall provides optional local Web Audio motifs for task actions,
+compile/hook outcomes and Bach loop decisions. Every view starts muted; enable
+sound, adjust its volume and preview it in the Hall. Coding and AI4Science use
+different synthetic timbres. History is silent, repeated polls are deduplicated,
+and background tabs do not accumulate a sound backlog. Visual status remains
+available without audio. See the [event and hook integration contract](dsh-plugin-philharmonie/README.md#event-instrumentation--事件音效).
